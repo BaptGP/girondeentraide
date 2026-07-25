@@ -5,14 +5,12 @@ const SUPABASE_ANON_KEY = import.meta.env.VITE_SUPABASE_ANON_KEY as
   | string
   | undefined;
 
-export const isSupabaseConfigured = Boolean(SUPABASE_URL && SUPABASE_ANON_KEY);
-
 async function supabaseFetch(
   path: string,
   options: RequestInit = {},
 ): Promise<Response> {
-  if (!isSupabaseConfigured) {
-    throw new Error("Supabase non configuré — utilisez les données mockées");
+  if (!SUPABASE_URL || !SUPABASE_ANON_KEY) {
+    throw new Error("Supabase non configuré — vérifiez .env");
   }
   const res = await fetch(`${SUPABASE_URL}/rest/v1${path}`, {
     ...options,
@@ -30,7 +28,6 @@ async function supabaseFetch(
 }
 
 export async function fetchPosts(): Promise<Post[]> {
-  if (!isSupabaseConfigured) return [];
   const res = await supabaseFetch("/posts?select=*&order=created_at.desc");
   const rows = await res.json();
   return rows.map(mapDbToPost);
@@ -39,7 +36,6 @@ export async function fetchPosts(): Promise<Post[]> {
 export async function createPost(
   data: Omit<Post, "id" | "createdAt" | "status">,
 ): Promise<Post | null> {
-  if (!isSupabaseConfigured) return null;
   const res = await supabaseFetch("/posts", {
     method: "POST",
     body: JSON.stringify({
@@ -66,7 +62,6 @@ export async function updatePostStatus(
   secretCode: string,
   status: "active" | "resolved",
 ): Promise<boolean> {
-  if (!isSupabaseConfigured) return false;
   const res = await supabaseFetch(
     `/posts?id=eq.${id}&secret_code=eq.${secretCode}`,
     {
@@ -81,7 +76,6 @@ export async function deletePost(
   id: string,
   secretCode: string,
 ): Promise<boolean> {
-  if (!isSupabaseConfigured) return false;
   const res = await supabaseFetch(
     `/posts?id=eq.${id}&secret_code=eq.${secretCode}`,
     { method: "DELETE" },
@@ -94,7 +88,7 @@ export function subscribeToPosts(
   onUpdate: (post: Post) => void,
   onDelete: (id: string) => void,
 ): () => void {
-  if (!isSupabaseConfigured) return () => {};
+  if (!SUPABASE_URL || !SUPABASE_ANON_KEY) return () => {};
 
   const wsUrl = `${SUPABASE_URL!.replace("https", "wss")}/realtime/v1/websocket?apikey=${SUPABASE_ANON_KEY}&vsn=1.0.0`;
   let ws: WebSocket | null = null;
