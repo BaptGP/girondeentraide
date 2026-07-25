@@ -1,0 +1,362 @@
+import {
+  Crosshair,
+  Flame,
+  List as ListIcon,
+  Mail,
+  Map as MapIcon,
+  Plus,
+  Search,
+  Wifi,
+  WifiOff,
+  X,
+} from "lucide-react";
+import { useEffect, useMemo, useRef, useState } from "react";
+import AddressSearch from "./components/AddressSearch";
+import MapContainerView from "./components/MapContainerView";
+import NewPostModal from "./components/NewPostModal";
+import PostCard from "./components/PostCard";
+import PostDetailSheet from "./components/PostDetailSheet";
+import type { FilterType } from "./store";
+import { getFilteredPosts, useStore } from "./store";
+import type { Category } from "./types";
+import { CATEGORIES } from "./types";
+
+const TYPE_FILTERS: { key: FilterType; label: string; color: string }[] = [
+  { key: "all", label: "Tous", color: "#fafafa" },
+  { key: "offer", label: "Offres", color: "#16a34a" },
+  { key: "request", label: "Demandes", color: "#dc2626" },
+  { key: "official", label: "Officiels", color: "#2563eb" },
+];
+
+export default function App() {
+  const viewMode = useStore((s) => s.viewMode);
+  const filterType = useStore((s) => s.filterType);
+  const filterCategory = useStore((s) => s.filterCategory);
+  const searchQuery = useStore((s) => s.searchQuery);
+  const selectedPostId = useStore((s) => s.selectedPostId);
+  const isNewPostModalOpen = useStore((s) => s.isNewPostModalOpen);
+  const posts = useStore((s) => s.posts);
+  const isSynced = useStore((s) => s.isSynced);
+
+  const setViewMode = useStore((s) => s.setViewMode);
+  const setFilterType = useStore((s) => s.setFilterType);
+  const setFilterCategory = useStore((s) => s.setFilterCategory);
+  const setSearchQuery = useStore((s) => s.setSearchQuery);
+  const selectPost = useStore((s) => s.selectPost);
+  const openNewPostModal = useStore((s) => s.openNewPostModal);
+  const closeNewPostModal = useStore((s) => s.closeNewPostModal);
+  const initSupabaseSync = useStore((s) => s.initSupabaseSync);
+
+  const [userPos, setUserPos] = useState<[number, number] | null>(null);
+  const [toast, setToast] = useState<string | null>(null);
+  const [mapTarget, setMapTarget] = useState<[number, number] | null>(null);
+  const prevPostCount = useRef(posts.length);
+
+  useEffect(() => {
+    const unsub = initSupabaseSync();
+    return unsub;
+  }, [initSupabaseSync]);
+
+  // Toast notification on new posts
+  useEffect(() => {
+    if (posts.length > prevPostCount.current) {
+      const newPost = posts[0];
+      if (newPost && newPost.id.startsWith("post-")) {
+        setToast(`Nouvelle annonce: ${newPost.title}`);
+        setTimeout(() => setToast(null), 4000);
+      }
+    }
+    prevPostCount.current = posts.length;
+  }, [posts]);
+
+  const filteredPosts = useMemo(
+    () =>
+      getFilteredPosts({
+        posts,
+        filterType,
+        filterCategory,
+        searchQuery,
+      }),
+    [posts, filterType, filterCategory, searchQuery],
+  );
+
+  // Sort by proximity if user position is available
+  const sortedPosts = useMemo(() => {
+    if (!userPos) return filteredPosts;
+    return [...filteredPosts].sort((a, b) => {
+      const da = Math.hypot(a.lat - userPos[0], a.lng - userPos[1]);
+      const db = Math.hypot(b.lat - userPos[0], b.lng - userPos[1]);
+      return da - db;
+    });
+  }, [filteredPosts, userPos]);
+
+  const selectedPost = useMemo(
+    () => posts.find((p) => p.id === selectedPostId) || null,
+    [posts, selectedPostId],
+  );
+
+  // Count posts per type for badges
+  const typeCounts = useMemo(() => {
+    const counts: Record<string, number> = {
+      all: 0,
+      offer: 0,
+      request: 0,
+      official: 0,
+    };
+    for (const p of posts) {
+      if (p.status === "resolved") continue;
+      counts.all++;
+      counts[p.type]++;
+    }
+    return counts;
+  }, [posts]);
+
+  const handleLocate = () => {
+    navigator.geolocation.getCurrentPosition(
+      (pos) => {
+        setUserPos([pos.coords.latitude, pos.coords.longitude]);
+      },
+      () => {},
+      { enableHighAccuracy: true, timeout: 10000 },
+    );
+  };
+
+  const handleAddressSelect = (lat: number, lng: number, label: string) => {
+    setMapTarget([lat, lng]);
+    setViewMode("map");
+    setToast(`📍 ${label.slice(0, 50)}`);
+    setTimeout(() => setToast(null), 4000);
+  };
+
+  return (
+    <div className="fixed inset-0 flex flex-col bg-crisis-dark overflow-hidden">
+      {/* Header */}
+      <header className="flex-shrink-0 bg-crisis-surface border-b border-crisis-border z-20">
+        <div className="flex items-center justify-between px-4 py-2.5">
+          <div className="flex items-center gap-2">
+            <Flame size={22} className="text-crisis-red" />
+            <div>
+              <h1 className="text-base font-bold text-white leading-none flex items-center gap-1.5">
+                GirondeEntraide
+                {isSynced ? (
+                  <Wifi size={12} className="text-crisis-green" />
+                ) : (
+                  <WifiOff size={12} className="text-gray-600" />
+                )}
+              </h1>
+              <p className="text-[10px] text-gray-500 leading-none mt-0.5">
+                Entraide d'urgence 33
+              </p>
+            </div>
+          </div>
+
+          {/* View toggle */}
+          <div className="flex bg-crisis-dark rounded-lg p-0.5 border border-crisis-border">
+            <button
+              onClick={() => setViewMode("map")}
+              className={`flex items-center gap-1.5 px-3 py-1.5 rounded-md text-xs font-medium transition-colors ${
+                viewMode === "map"
+                  ? "bg-crisis-red text-white"
+                  : "text-gray-400"
+              }`}
+            >
+              <MapIcon size={14} />
+              Carte
+            </button>
+            <button
+              onClick={() => setViewMode("list")}
+              className={`flex items-center gap-1.5 px-3 py-1.5 rounded-md text-xs font-medium transition-colors ${
+                viewMode === "list"
+                  ? "bg-crisis-red text-white"
+                  : "text-gray-400"
+              }`}
+            >
+              <ListIcon size={14} />
+              Liste
+            </button>
+          </div>
+        </div>
+
+        {/* Search bar — annonces + adresse */}
+        <div className="flex gap-2 px-4 pb-2">
+          <div className="relative flex-1">
+            <Search
+              size={16}
+              className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-500"
+            />
+            <input
+              type="text"
+              placeholder="Filtrer annonces..."
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+              className="w-full bg-crisis-dark border border-crisis-border rounded-lg pl-9 pr-9 py-2 text-sm text-white placeholder:text-gray-600 focus:outline-none focus:border-crisis-red"
+            />
+            {searchQuery && (
+              <button
+                onClick={() => setSearchQuery("")}
+                className="absolute right-2 top-1/2 -translate-y-1/2 text-gray-500 hover:text-gray-300"
+              >
+                <X size={16} />
+              </button>
+            )}
+          </div>
+          <AddressSearch onSelect={handleAddressSelect} />
+        </div>
+
+        {/* Type filters */}
+        <div className="flex gap-1.5 px-4 pb-2 overflow-x-auto scrollbar-hide">
+          {TYPE_FILTERS.map((tf) => (
+            <button
+              key={tf.key}
+              onClick={() => setFilterType(tf.key)}
+              className={`flex-shrink-0 px-3 py-1 rounded-full text-xs font-semibold border transition-all ${
+                filterType === tf.key
+                  ? "text-white"
+                  : "text-gray-400 border-crisis-border bg-crisis-dark"
+              }`}
+              style={
+                filterType === tf.key
+                  ? {
+                      backgroundColor: tf.color,
+                      borderColor: tf.color,
+                      color: tf.key === "all" ? "#0a0a0a" : "#fff",
+                    }
+                  : {}
+              }
+            >
+              {tf.label}
+              <span
+                className={`ml-1.5 text-[10px] ${
+                  filterType === tf.key ? "opacity-80" : "text-gray-600"
+                }`}
+              >
+                {typeCounts[tf.key] || 0}
+              </span>
+            </button>
+          ))}
+        </div>
+
+        {/* Category filters */}
+        <div className="flex gap-1.5 px-4 pb-2.5 overflow-x-auto scrollbar-hide">
+          <button
+            onClick={() => setFilterCategory("all")}
+            className={`flex-shrink-0 px-2.5 py-1 rounded-full text-xs font-medium border transition-all ${
+              filterCategory === "all"
+                ? "bg-crisis-card text-white border-gray-600"
+                : "text-gray-500 border-crisis-border bg-crisis-dark"
+            }`}
+          >
+            Toutes catégories
+          </button>
+          {CATEGORIES.map((cat) => (
+            <button
+              key={cat.key}
+              onClick={() => setFilterCategory(cat.key as Category | "all")}
+              className={`flex-shrink-0 flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-medium border transition-all ${
+                filterCategory === cat.key
+                  ? "bg-crisis-card text-white border-gray-600"
+                  : "text-gray-500 border-crisis-border bg-crisis-dark"
+              }`}
+            >
+              <span>{cat.emoji}</span>
+              {cat.label}
+            </button>
+          ))}
+        </div>
+      </header>
+
+      {/* Main content */}
+      <main className="flex-1 relative overflow-hidden">
+        {viewMode === "map" ? (
+          <MapContainerView
+            posts={filteredPosts}
+            selectedPostId={selectedPostId}
+            onSelectPost={selectPost}
+            userPos={userPos}
+            mapTarget={mapTarget}
+          />
+        ) : (
+          <div className="h-full overflow-y-auto px-4 py-3 space-y-2.5">
+            {sortedPosts.length === 0 ? (
+              <div className="flex flex-col items-center justify-center h-full text-gray-500 gap-2">
+                <Search size={32} />
+                <p className="text-sm">Aucune annonce trouvée</p>
+              </div>
+            ) : (
+              <>
+                <div className="flex items-center justify-between mb-1">
+                  <p className="text-xs text-gray-500">
+                    {sortedPosts.length} annonce
+                    {sortedPosts.length > 1 ? "s" : ""}
+                    {userPos && " \u00b7 triées par proximité"}
+                  </p>
+                  {!userPos && (
+                    <button
+                      onClick={handleLocate}
+                      className="flex items-center gap-1 text-xs text-crisis-blue"
+                    >
+                      <Crosshair size={12} />
+                      Trier par proximité
+                    </button>
+                  )}
+                </div>
+                {sortedPosts.map((post) => (
+                  <PostCard
+                    key={post.id}
+                    post={post}
+                    onClick={() => selectPost(post.id)}
+                  />
+                ))}
+              </>
+            )}
+          </div>
+        )}
+
+        {/* Locate button (map mode) */}
+        {viewMode === "map" && (
+          <button
+            onClick={handleLocate}
+            className="absolute bottom-24 right-5 z-30 w-11 h-11 bg-crisis-surface border border-crisis-border rounded-full flex items-center justify-center text-gray-300 hover:text-white hover:border-gray-500 shadow-lg active:scale-95 transition-all"
+            title="Ma position"
+          >
+            <Crosshair size={20} />
+          </button>
+        )}
+
+        {/* Toast notification */}
+        {toast && (
+          <div className="absolute top-4 left-1/2 -translate-x-1/2 z-30 bg-crisis-green text-white px-4 py-2.5 rounded-xl shadow-lg text-sm font-medium animate-slide-up max-w-[90%] truncate">
+            {toast}
+          </div>
+        )}
+
+        {/* FAB */}
+        <button
+          onClick={openNewPostModal}
+          className="absolute bottom-5 right-5 z-30 flex items-center gap-2 bg-crisis-red text-white pl-4 pr-5 py-3.5 rounded-full font-semibold shadow-lg shadow-crisis-red/30 hover:brightness-110 active:scale-95 transition-all"
+        >
+          <Plus size={22} />
+          <span className="text-sm">Proposer / Demander</span>
+        </button>
+      </main>
+
+      {/* Modals */}
+      {selectedPost && (
+        <PostDetailSheet post={selectedPost} onClose={() => selectPost(null)} />
+      )}
+      {isNewPostModalOpen && <NewPostModal onClose={closeNewPostModal} />}
+
+      {/* Footer */}
+      <footer className="flex-shrink-0 bg-crisis-surface border-t border-crisis-border px-4 py-2 flex items-center justify-between">
+        <a
+          href="mailto:contact@eliaman.com"
+          className="flex items-center gap-1.5 text-[11px] text-gray-500 hover:text-gray-300"
+        >
+          <Mail size={12} />
+          contact@eliaman.com
+        </a>
+        <span className="text-[11px] text-gray-600">Développé par Eliaman</span>
+      </footer>
+    </div>
+  );
+}

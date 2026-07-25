@@ -1,0 +1,9 @@
+User-agent: *
+Allow: /
+Disallow: /assets/
+
+# Sitemap
+Sitemap: https://girondeentraide.fr/sitemap.xml
+
+# Crawl delay pour ne pas surcharger
+Crawl-delay: 1
