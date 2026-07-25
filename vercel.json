@@ -1,15 +1,7 @@
 {
   "rewrites": [
     {
-      "source": "/sitemap.xml",
-      "destination": "/sitemap.xml"
-    },
-    {
-      "source": "/robots.txt",
-      "destination": "/robots.txt"
-    },
-    {
-      "source": "/((?!api/).*)",
+      "source": "/((?!sitemap\\.xml|robots\\.txt|favicon\\.svg|manifest\\.webmanifest|assets/|pwa-).*)",
       "destination": "/index.html"
     }
   ],
