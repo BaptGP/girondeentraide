@@ -49,6 +49,7 @@ export async function createPost(
       location_name: data.locationName,
       contact: data.contact,
       secret_code: data.secretCode,
+      urgent: data.urgent,
       status: "active",
     }),
     headers: { Prefer: "return=representation" },
@@ -152,6 +153,7 @@ function mapDbToPost(row: Record<string, unknown>): Post {
     locationName: (row.location_name as string) || "",
     contact: (row.contact as string) || "",
     secretCode: (row.secret_code as string) || "",
+    urgent: (row.urgent as boolean) || false,
     status: (row.status as "active" | "resolved") || "active",
     createdAt: (row.created_at as string) || new Date().toISOString(),
   };

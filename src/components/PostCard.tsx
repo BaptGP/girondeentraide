@@ -1,27 +1,27 @@
-import { MapPin, Clock, Users } from 'lucide-react'
-import type { Post } from '../types'
-import { TYPE_LABELS, TYPE_COLORS, CATEGORY_MAP } from '../types'
+import { Clock, MapPin, Users } from "lucide-react";
+import type { Post } from "../types";
+import { CATEGORY_MAP, TYPE_COLORS, TYPE_LABELS } from "../types";
 
 function timeAgo(iso: string): string {
-  const diff = Date.now() - new Date(iso).getTime()
-  const mins = Math.floor(diff / 60000)
-  if (mins < 1) return "à l'instant"
-  if (mins < 60) return `il y a ${mins} min`
-  const hours = Math.floor(mins / 60)
-  if (hours < 24) return `il y a ${hours}h`
-  const days = Math.floor(hours / 24)
-  return `il y a ${days}j`
+  const diff = Date.now() - new Date(iso).getTime();
+  const mins = Math.floor(diff / 60000);
+  if (mins < 1) return "à l'instant";
+  if (mins < 60) return `il y a ${mins} min`;
+  const hours = Math.floor(mins / 60);
+  if (hours < 24) return `il y a ${hours}h`;
+  const days = Math.floor(hours / 24);
+  return `il y a ${days}j`;
 }
 
 export default function PostCard({
   post,
   onClick,
 }: {
-  post: Post
-  onClick: () => void
+  post: Post;
+  onClick: () => void;
 }) {
-  const color = TYPE_COLORS[post.type]
-  const cat = CATEGORY_MAP[post.category]
+  const color = TYPE_COLORS[post.type];
+  const cat = CATEGORY_MAP[post.category];
 
   return (
     <button
@@ -33,7 +33,7 @@ export default function PostCard({
           className="flex-shrink-0 w-10 h-10 rounded-full flex items-center justify-center text-lg"
           style={{ backgroundColor: color }}
         >
-          {cat?.emoji ?? '📍'}
+          {cat?.emoji ?? "📍"}
         </div>
 
         <div className="flex-1 min-w-0">
@@ -44,6 +44,11 @@ export default function PostCard({
             >
               {TYPE_LABELS[post.type]}
             </span>
+            {post.urgent && (
+              <span className="text-xs font-bold uppercase tracking-wide px-2 py-0.5 rounded bg-crisis-red/20 text-crisis-red animate-pulse">
+                Urgent
+              </span>
+            )}
             <span className="text-xs text-gray-400 flex items-center gap-1">
               <Clock size={12} />
               {timeAgo(post.createdAt)}
@@ -66,12 +71,12 @@ export default function PostCard({
             {post.capacity > 0 && (
               <span className="flex items-center gap-1">
                 <Users size={12} />
-                {post.capacity} {post.type === 'offer' ? 'places' : 'pers.'}
+                {post.capacity} {post.type === "offer" ? "places" : "pers."}
               </span>
             )}
           </div>
         </div>
       </div>
     </button>
-  )
+  );
 }

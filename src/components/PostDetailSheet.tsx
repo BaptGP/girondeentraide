@@ -1,77 +1,78 @@
-import { useState } from 'react'
 import {
-  X,
-  Phone,
+  AlertTriangle,
+  CheckCircle2,
+  Clock,
+  Flag,
+  MapPin,
   MessageCircle,
   Navigation,
-  MapPin,
-  Users,
-  Clock,
-  CheckCircle2,
+  Phone,
   Trash2,
-  AlertTriangle,
-} from 'lucide-react'
-import type { Post } from '../types'
-import { TYPE_LABELS, TYPE_COLORS, CATEGORY_MAP } from '../types'
-import { useStore } from '../store'
+  Users,
+  X,
+} from "lucide-react";
+import { useState } from "react";
+import { useStore } from "../store";
+import type { Post } from "../types";
+import { CATEGORY_MAP, TYPE_COLORS, TYPE_LABELS } from "../types";
 
 function timeAgo(iso: string): string {
-  const diff = Date.now() - new Date(iso).getTime()
-  const mins = Math.floor(diff / 60000)
-  if (mins < 1) return "à l'instant"
-  if (mins < 60) return `il y a ${mins} min`
-  const hours = Math.floor(mins / 60)
-  if (hours < 24) return `il y a ${hours}h`
-  const days = Math.floor(hours / 24)
-  return `il y a ${days}j`
+  const diff = Date.now() - new Date(iso).getTime();
+  const mins = Math.floor(diff / 60000);
+  if (mins < 1) return "à l'instant";
+  if (mins < 60) return `il y a ${mins} min`;
+  const hours = Math.floor(mins / 60);
+  if (hours < 24) return `il y a ${hours}h`;
+  const days = Math.floor(hours / 24);
+  return `il y a ${days}j`;
 }
 
 export default function PostDetailSheet({
   post,
   onClose,
 }: {
-  post: Post
-  onClose: () => void
+  post: Post;
+  onClose: () => void;
 }) {
-  const [showManage, setShowManage] = useState(false)
-  const [codeInput, setCodeInput] = useState('')
-  const [error, setError] = useState('')
-  const resolvePost = useStore((s) => s.resolvePost)
-  const deletePost = useStore((s) => s.deletePost)
+  const [showManage, setShowManage] = useState(false);
+  const [codeInput, setCodeInput] = useState("");
+  const [error, setError] = useState("");
+  const resolvePost = useStore((s) => s.resolvePost);
+  const deletePost = useStore((s) => s.deletePost);
 
-  const color = TYPE_COLORS[post.type]
-  const cat = CATEGORY_MAP[post.category]
+  const color = TYPE_COLORS[post.type];
+  const cat = CATEGORY_MAP[post.category];
 
-  const phoneDigits = post.contact.replace(/\D/g, '')
-  const whatsappUrl = `https://wa.me/${phoneDigits.startsWith('0') ? '33' + phoneDigits.slice(1) : phoneDigits}`
-  const phoneUrl = `tel:${phoneDigits}`
-  const directionsUrl = `https://www.openstreetmap.org/directions?from=&to=${post.lat}%2C${post.lng}`
+  const phoneDigits = post.contact.replace(/\D/g, "");
+  const whatsappUrl = `https://wa.me/${phoneDigits.startsWith("0") ? "33" + phoneDigits.slice(1) : phoneDigits}`;
+  const phoneUrl = `tel:${phoneDigits}`;
+  const directionsUrl = `https://www.openstreetmap.org/directions?from=&to=${post.lat}%2C${post.lng}`;
 
   const handleResolve = () => {
     if (codeInput.length !== 4) {
-      setError('Code à 4 chiffres requis')
-      return
+      setError("Code à 4 chiffres requis");
+      return;
     }
-    const ok = resolvePost(post.id, codeInput)
+    const ok = resolvePost(post.id, codeInput);
     if (!ok) {
-      setError('Code incorrect')
-      return
+      setError("Code incorrect");
+      return;
     }
-    onClose()
-  }
+    onClose();
+  };
 
   const handleDelete = () => {
     if (codeInput.length !== 4) {
-      setError('Code à 4 chiffres requis')
-      return
+      setError("Code à 4 chiffres requis");
+      return;
     }
-    const ok = deletePost(post.id, codeInput)
+    const ok = deletePost(post.id, codeInput);
     if (!ok) {
-      setError('Code incorrect')
-      return
+      setError("Code incorrect");
+      return;
     }
-    onClose()
-  }
+    onClose();
+  };
 
   return (
     <>
@@ -90,6 +91,11 @@ export default function PostDetailSheet({
               >
                 {TYPE_LABELS[post.type]}
               </span>
+              {post.urgent && (
+                <span className="text-xs font-bold uppercase tracking-wide px-2 py-1 rounded bg-crisis-red/20 text-crisis-red animate-pulse">
+                  Urgent
+                </span>
+              )}
               <span className="text-sm text-gray-400">
                 {cat?.emoji} {cat?.label}
               </span>
@@ -120,7 +126,8 @@ export default function PostDetailSheet({
             {post.capacity > 0 && (
               <span className="flex items-center gap-1.5">
                 <Users size={16} />
-                {post.capacity} {post.type === 'offer' ? 'places dispo.' : 'personnes'}
+                {post.capacity}{" "}
+                {post.type === "offer" ? "places dispo." : "personnes"}
               </span>
             )}
             <span className="flex items-center gap-1.5">
@@ -160,19 +167,34 @@ export default function PostDetailSheet({
 
           {/* Manage section */}
           <div className="pt-2 border-t border-crisis-border">
-            {!showManage ? (
-              <button
-                onClick={() => setShowManage(true)}
-                className="text-xs text-gray-500 hover:text-gray-300 flex items-center gap-1.5"
+            <div className="flex items-center justify-between">
+              {!showManage ? (
+                <button
+                  onClick={() => setShowManage(true)}
+                  className="text-xs text-gray-500 hover:text-gray-300 flex items-center gap-1.5"
+                >
+                  <AlertTriangle size={14} />
+                  C'est mon annonce — la gérer
+                </button>
+              ) : (
+                <span className="text-xs text-gray-500 flex items-center gap-1.5">
+                  <AlertTriangle size={14} />
+                  Gérer mon annonce
+                </span>
+              )}
+              <a
+                href={`mailto:contact@eliaman.com?subject=Signalement%20annonce%20${post.id}&body=Signalement%20de%20l'annonce%20:%20${post.title}%0AID%20:%20${post.id}%0A%0ARaison%20du%20signalement%20:%20`}
+                className="text-xs text-gray-500 hover:text-crisis-red flex items-center gap-1.5"
               >
-                <AlertTriangle size={14} />
-                C'est mon annonce — la gérer
-              </button>
-            ) : (
-              <div className="space-y-3">
+                <Flag size={14} />
+                Signaler
+              </a>
+            </div>
+            {showManage && (
+              <div className="space-y-3 mt-3">
                 <p className="text-xs text-gray-400">
-                  Entrez votre code secret à 4 chiffres pour marquer comme résolu
-                  ou supprimer :
+                  Entrez votre code secret à 4 chiffres pour marquer comme
+                  résolu ou supprimer :
                 </p>
                 <input
                   type="text"
@@ -181,14 +203,12 @@ export default function PostDetailSheet({
                   placeholder="••••"
                   value={codeInput}
                   onChange={(e) => {
-                    setCodeInput(e.target.value.replace(/\D/g, ''))
-                    setError('')
+                    setCodeInput(e.target.value.replace(/\D/g, ""));
+                    setError("");
                   }}
                   className="w-full bg-crisis-dark border border-crisis-border rounded-lg px-4 py-2.5 text-white text-center text-lg tracking-widest focus:outline-none focus:border-crisis-red"
                 />
-                {error && (
-                  <p className="text-xs text-crisis-red">{error}</p>
-                )}
+                {error && <p className="text-xs text-crisis-red">{error}</p>}
                 <div className="grid grid-cols-2 gap-2">
                   <button
                     onClick={handleResolve}
@@ -211,5 +231,5 @@ export default function PostDetailSheet({
         </div>
       </div>
     </>
-  )
+  );
 }

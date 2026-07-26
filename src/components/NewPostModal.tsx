@@ -6,6 +6,7 @@ import {
   ChevronRight,
   Copy,
   Crosshair,
+  Handshake,
   Heart,
   Loader2,
   Lock,
@@ -38,6 +39,7 @@ export default function NewPostModal({ onClose }: { onClose: () => void }) {
   const [lng, setLng] = useState<number | null>(null);
   const [locationName, setLocationName] = useState("");
   const [secretCode, setSecretCode] = useState(generateCode());
+  const [urgent, setUrgent] = useState(false);
   const [geoLoading, setGeoLoading] = useState(false);
   const [geoError, setGeoError] = useState("");
   const [submitted, setSubmitted] = useState(false);
@@ -145,6 +147,7 @@ export default function NewPostModal({ onClose }: { onClose: () => void }) {
       locationName: locationName || "Localisation non précisée",
       contact: contact.trim(),
       secretCode,
+      urgent,
     });
     setSubmitted(true);
   };
@@ -167,6 +170,12 @@ export default function NewPostModal({ onClose }: { onClose: () => void }) {
       label: "Je demande de l'aide",
       icon: AlertCircle,
       color: "#dc2626",
+    },
+    {
+      value: "volunteer" as PostType,
+      label: "Point volontaires",
+      icon: Handshake,
+      color: "#f59e0b",
     },
     {
       value: "official" as PostType,
@@ -494,6 +503,29 @@ export default function NewPostModal({ onClose }: { onClose: () => void }) {
                       </span>
                     </div>
                   </div>
+
+                  {type === "request" && (
+                    <div className="flex items-center gap-3 p-3 bg-crisis-dark rounded-xl border border-crisis-border">
+                      <button
+                        type="button"
+                        onClick={() => setUrgent(!urgent)}
+                        className={`relative w-12 h-6 rounded-full transition-colors ${urgent ? "bg-crisis-red" : "bg-gray-600"}`}
+                      >
+                        <span
+                          className={`absolute top-0.5 left-0.5 w-5 h-5 rounded-full bg-white transition-transform ${urgent ? "translate-x-6" : ""}`}
+                        />
+                      </button>
+                      <div className="flex-1">
+                        <div className="text-sm text-white font-medium flex items-center gap-1.5">
+                          <AlertCircle size={14} className="text-crisis-red" />
+                          Annonce urgente
+                        </div>
+                        <div className="text-xs text-gray-500">
+                          Personnes en danger immédiat, feu proche
+                        </div>
+                      </div>
+                    </div>
+                  )}
 
                   <div className="flex gap-2 pt-2">
                     <button

@@ -1,4 +1,5 @@
 import {
+  AlertCircle,
   Crosshair,
   Flame,
   List as ListIcon,
@@ -12,6 +13,7 @@ import {
 } from "lucide-react";
 import { useEffect, useMemo, useRef, useState } from "react";
 import AddressSearch from "./components/AddressSearch";
+import EmergencyNumbers from "./components/EmergencyNumbers";
 import MapContainerView from "./components/MapContainerView";
 import NewPostModal from "./components/NewPostModal";
 import PostCard from "./components/PostCard";
@@ -25,6 +27,7 @@ const TYPE_FILTERS: { key: FilterType; label: string; color: string }[] = [
   { key: "all", label: "Tous", color: "#fafafa" },
   { key: "offer", label: "Offres", color: "#16a34a" },
   { key: "request", label: "Demandes", color: "#dc2626" },
+  { key: "volunteer", label: "Volontaires", color: "#f59e0b" },
   { key: "official", label: "Officiels", color: "#2563eb" },
 ];
 
@@ -33,6 +36,7 @@ export default function App() {
   const filterType = useStore((s) => s.filterType);
   const filterCategory = useStore((s) => s.filterCategory);
   const searchQuery = useStore((s) => s.searchQuery);
+  const sortByUrgent = useStore((s) => s.sortByUrgent);
   const selectedPostId = useStore((s) => s.selectedPostId);
   const isNewPostModalOpen = useStore((s) => s.isNewPostModalOpen);
   const posts = useStore((s) => s.posts);
@@ -42,6 +46,7 @@ export default function App() {
   const setFilterType = useStore((s) => s.setFilterType);
   const setFilterCategory = useStore((s) => s.setFilterCategory);
   const setSearchQuery = useStore((s) => s.setSearchQuery);
+  const setSortByUrgent = useStore((s) => s.setSortByUrgent);
   const selectPost = useStore((s) => s.selectPost);
   const openNewPostModal = useStore((s) => s.openNewPostModal);
   const closeNewPostModal = useStore((s) => s.closeNewPostModal);
@@ -76,8 +81,9 @@ export default function App() {
         filterType,
         filterCategory,
         searchQuery,
+        sortByUrgent,
       }),
-    [posts, filterType, filterCategory, searchQuery],
+    [posts, filterType, filterCategory, searchQuery, sortByUrgent],
   );
 
   // Sort by proximity if user position is available
@@ -234,6 +240,17 @@ export default function App() {
               </span>
             </button>
           ))}
+          <button
+            onClick={() => setSortByUrgent(!sortByUrgent)}
+            className={`flex-shrink-0 px-3 py-1 rounded-full text-xs font-semibold border transition-all flex items-center gap-1 ${
+              sortByUrgent
+                ? "bg-crisis-red text-white border-crisis-red"
+                : "text-gray-400 border-crisis-border bg-crisis-dark"
+            }`}
+          >
+            <AlertCircle size={12} />
+            Urgents d'abord
+          </button>
         </div>
 
         {/* Category filters */}
@@ -329,6 +346,9 @@ export default function App() {
             {toast}
           </div>
         )}
+
+        {/* SOS Emergency numbers */}
+        <EmergencyNumbers />
 
         {/* FAB */}
         <button

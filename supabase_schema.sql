@@ -7,8 +7,8 @@
 -- Table principale des annonces
 create table if not exists public.posts (
   id uuid default gen_random_uuid() primary key,
-  type text not null check (type in ('offer', 'request', 'official')),
-  category text not null check (category in ('hebergement', 'animaux', 'transport', 'materiel', 'autre')),
+  type text not null check (type in ('offer', 'request', 'official', 'volunteer')),
+  category text not null check (category in ('hebergement', 'animaux', 'transport', 'materiel', 'nourriture', 'volontaires', 'autre')),
   title text not null,
   description text default '',
   capacity int default 0,
@@ -17,6 +17,7 @@ create table if not exists public.posts (
   location_name text default '',
   contact text default '',
   secret_code text not null,
+  urgent boolean default false,
   status text default 'active' check (status in ('active', 'resolved')),
   created_at timestamptz default now()
 );

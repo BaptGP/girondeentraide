@@ -17,6 +17,7 @@ interface AppState {
   filterType: FilterType;
   filterCategory: Category | "all";
   searchQuery: string;
+  sortByUrgent: boolean;
   selectedPostId: string | null;
   isNewPostModalOpen: boolean;
   isSynced: boolean;
@@ -25,6 +26,7 @@ interface AppState {
   setFilterType: (type: FilterType) => void;
   setFilterCategory: (cat: Category | "all") => void;
   setSearchQuery: (q: string) => void;
+  setSortByUrgent: (v: boolean) => void;
   selectPost: (id: string | null) => void;
   openNewPostModal: () => void;
   closeNewPostModal: () => void;
@@ -42,6 +44,7 @@ export const useStore = create<AppState>()((set, get) => ({
   filterType: "all",
   filterCategory: "all",
   searchQuery: "",
+  sortByUrgent: false,
   selectedPostId: null,
   isNewPostModalOpen: false,
   isSynced: false,
@@ -50,6 +53,7 @@ export const useStore = create<AppState>()((set, get) => ({
   setFilterType: (type) => set({ filterType: type }),
   setFilterCategory: (cat) => set({ filterCategory: cat }),
   setSearchQuery: (q) => set({ searchQuery: q }),
+  setSortByUrgent: (v) => set({ sortByUrgent: v }),
   selectPost: (id) => set({ selectedPostId: id }),
   openNewPostModal: () => set({ isNewPostModalOpen: true }),
   closeNewPostModal: () => set({ isNewPostModalOpen: false }),
@@ -149,6 +153,7 @@ export interface FilterParams {
   filterType: FilterType;
   filterCategory: Category | "all";
   searchQuery: string;
+  sortByUrgent: boolean;
 }
 
 export function getFilteredPosts({
@@ -156,8 +161,9 @@ export function getFilteredPosts({
   filterType,
   filterCategory,
   searchQuery,
+  sortByUrgent,
 }: FilterParams): Post[] {
-  return posts.filter((p) => {
+  const filtered = posts.filter((p) => {
     if (p.status === "resolved") return false;
     if (filterType !== "all" && p.type !== filterType) return false;
     if (filterCategory !== "all" && p.category !== filterCategory) return false;
@@ -171,4 +177,12 @@ export function getFilteredPosts({
     }
     return true;
   });
+  if (sortByUrgent) {
+    return [...filtered].sort((a, b) => {
+      if (a.urgent && !b.urgent) return -1;
+      if (!a.urgent && b.urgent) return 1;
+      return 0;
+    });
+  }
+  return filtered;
 }
