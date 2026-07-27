@@ -45,7 +45,6 @@ export default function AddressSearch({ onSelect }: AddressSearchProps) {
           return;
         }
         const data: AddressResult[] = await res.json();
-        console.log("[AddressSearch] results:", data.length, data.slice(0, 2));
         setResults(data);
       } catch {
         setResults([]);
@@ -83,6 +82,7 @@ export default function AddressSearch({ onSelect }: AddressSearchProps) {
       <Search
         size={16}
         className="absolute left-3 top-1/2 -translate-y-1/2 text-crisis-blue"
+        aria-hidden="true"
       />
       <input
         type="text"
@@ -93,6 +93,10 @@ export default function AddressSearch({ onSelect }: AddressSearchProps) {
           setOpen(true);
         }}
         onFocus={() => setOpen(true)}
+        aria-label="Rechercher une adresse"
+        role="combobox"
+        aria-expanded={open}
+        aria-controls="address-results"
         className="w-full bg-crisis-dark border border-crisis-border rounded-lg pl-9 pr-9 py-2 text-sm text-white placeholder:text-gray-600 focus:outline-none focus:border-crisis-blue"
       />
       {loading && (
@@ -114,11 +118,17 @@ export default function AddressSearch({ onSelect }: AddressSearchProps) {
       )}
 
       {open && results.length > 0 && (
-        <div className="absolute top-full left-0 right-0 mt-1 bg-crisis-surface border border-crisis-border rounded-lg shadow-xl z-50 max-h-64 overflow-y-auto">
+        <div
+          id="address-results"
+          className="absolute top-full left-0 right-0 mt-1 bg-crisis-surface border border-crisis-border rounded-lg shadow-xl z-50 max-h-64 overflow-y-auto"
+          role="listbox"
+        >
           {results.map((r, i) => (
             <button
               key={i}
               onClick={() => handleSelect(r)}
+              role="option"
+              aria-selected="false"
               className="w-full flex items-start gap-2 px-3 py-2.5 text-left hover:bg-crisis-dark transition-colors border-b border-crisis-border last:border-0"
             >
               <MapPin

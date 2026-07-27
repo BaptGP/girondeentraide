@@ -1,7 +1,9 @@
 import {
   AlertCircle,
   Crosshair,
+  ExternalLink,
   Flame,
+  Info,
   List as ListIcon,
   Mail,
   Map as MapIcon,
@@ -55,6 +57,9 @@ export default function App() {
   const [userPos, setUserPos] = useState<[number, number] | null>(null);
   const [toast, setToast] = useState<string | null>(null);
   const [mapTarget, setMapTarget] = useState<[number, number] | null>(null);
+  const [showVigilance, setShowVigilance] = useState(false);
+  const [searchPos, setSearchPos] = useState<[number, number] | null>(null);
+  const [searchRadius, setSearchRadius] = useState<number>(20);
   const prevPostCount = useRef(posts.length);
 
   useEffect(() => {
@@ -74,6 +79,18 @@ export default function App() {
     prevPostCount.current = posts.length;
   }, [posts]);
 
+  // Auto-open post from URL ?post=ID
+  useEffect(() => {
+    const params = new URLSearchParams(window.location.search);
+    const postId = params.get("post");
+    if (postId && posts.length > 0 && !selectedPostId) {
+      const post = posts.find((p) => p.id === postId);
+      if (post) {
+        selectPost(post.id);
+      }
+    }
+  }, [posts, selectedPostId, selectPost]);
+
   const filteredPosts = useMemo(
     () =>
       getFilteredPosts({
@@ -88,13 +105,34 @@ export default function App() {
 
   // Sort by proximity if user position is available
   const sortedPosts = useMemo(() => {
-    if (!userPos) return filteredPosts;
-    return [...filteredPosts].sort((a, b) => {
-      const da = Math.hypot(a.lat - userPos[0], a.lng - userPos[1]);
-      const db = Math.hypot(b.lat - userPos[0], b.lng - userPos[1]);
-      return da - db;
-    });
-  }, [filteredPosts, userPos]);
+    let result = filteredPosts;
+    if (searchPos) {
+      result = filteredPosts.filter((p) => {
+        const distKm = Math.hypot(
+          (p.lat - searchPos[0]) * 111,
+          (p.lng - searchPos[1]) *
+            111 *
+            Math.cos((searchPos[0] * Math.PI) / 180),
+        );
+        return distKm <= searchRadius;
+      });
+    }
+    if (userPos) {
+      return [...result].sort((a, b) => {
+        const da = Math.hypot(a.lat - userPos[0], a.lng - userPos[1]);
+        const db = Math.hypot(b.lat - userPos[0], b.lng - userPos[1]);
+        return da - db;
+      });
+    }
+    if (searchPos) {
+      return [...result].sort((a, b) => {
+        const da = Math.hypot(a.lat - searchPos[0], a.lng - searchPos[1]);
+        const db = Math.hypot(b.lat - searchPos[0], b.lng - searchPos[1]);
+        return da - db;
+      });
+    }
+    return result;
+  }, [filteredPosts, userPos, searchPos, searchRadius]);
 
   const selectedPost = useMemo(
     () => posts.find((p) => p.id === selectedPostId) || null,
@@ -129,10 +167,15 @@ export default function App() {
   };
 
   const handleAddressSelect = (lat: number, lng: number, label: string) => {
+    setSearchPos([lat, lng]);
     setMapTarget([lat, lng]);
     setViewMode("map");
     setToast(`📍 ${label.slice(0, 50)}`);
     setTimeout(() => setToast(null), 4000);
+  };
+
+  const clearSearchPos = () => {
+    setSearchPos(null);
   };
 
   return (
@@ -156,6 +199,18 @@ export default function App() {
               </p>
             </div>
           </div>
+
+          {/* Fire map link */}
+          <a
+            href="https://feux.fixvault.fr"
+            target="_blank"
+            rel="noopener noreferrer"
+            className="hidden sm:flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg bg-orange-950/50 border border-orange-800/50 text-orange-400 text-xs font-medium hover:bg-orange-900/40 transition-colors"
+          >
+            <Flame size={14} />
+            <span>Feux en direct</span>
+            <ExternalLink size={10} />
+          </a>
 
           {/* View toggle */}
           <div className="flex bg-crisis-dark rounded-lg p-0.5 border border-crisis-border">
@@ -196,6 +251,7 @@ export default function App() {
               placeholder="Filtrer annonces..."
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
+              aria-label="Filtrer les annonces par texte"
               className="w-full bg-crisis-dark border border-crisis-border rounded-lg pl-9 pr-9 py-2 text-sm text-white placeholder:text-gray-600 focus:outline-none focus:border-crisis-red"
             />
             {searchQuery && (
@@ -209,6 +265,35 @@ export default function App() {
           </div>
           <AddressSearch onSelect={handleAddressSelect} />
         </div>
+
+        {/* Radius filter */}
+        {searchPos && (
+          <div className="flex items-center gap-2 px-4 pb-2">
+            <span className="text-xs text-gray-500 flex-shrink-0">
+              Dans un rayon de :
+            </span>
+            {[5, 10, 20, 50, 100].map((km) => (
+              <button
+                key={km}
+                onClick={() => setSearchRadius(km)}
+                className={`flex-shrink-0 px-2.5 py-0.5 rounded-full text-xs font-medium border transition-all ${
+                  searchRadius === km
+                    ? "bg-crisis-blue text-white border-crisis-blue"
+                    : "text-gray-400 border-crisis-border bg-crisis-dark"
+                }`}
+              >
+                {km} km
+              </button>
+            ))}
+            <button
+              onClick={clearSearchPos}
+              className="flex-shrink-0 ml-auto text-xs text-gray-500 hover:text-gray-300 flex items-center gap-1"
+            >
+              <X size={12} />
+              Effacer
+            </button>
+          </div>
+        )}
 
         {/* Type filters */}
         <div className="flex gap-1.5 px-4 pb-2 overflow-x-auto scrollbar-hide">
@@ -334,6 +419,7 @@ export default function App() {
         {viewMode === "map" && (
           <button
             onClick={handleLocate}
+            aria-label="Me localiser"
             className="absolute bottom-24 right-5 z-30 w-11 h-11 bg-crisis-surface border border-crisis-border rounded-full flex items-center justify-center text-gray-300 hover:text-white hover:border-gray-500 shadow-lg active:scale-95 transition-all"
             title="Ma position"
           >
@@ -354,6 +440,7 @@ export default function App() {
         {/* FAB */}
         <button
           onClick={openNewPostModal}
+          aria-label="Créer une nouvelle annonce"
           className="absolute bottom-5 right-5 z-30 flex items-center gap-2 bg-crisis-red text-white pl-4 pr-5 py-3.5 rounded-full font-semibold shadow-lg shadow-crisis-red/30 hover:brightness-110 active:scale-95 transition-all"
         >
           <Plus size={22} />
@@ -368,16 +455,94 @@ export default function App() {
       {isNewPostModalOpen && <NewPostModal onClose={closeNewPostModal} />}
 
       {/* Footer */}
-      <footer className="flex-shrink-0 bg-crisis-surface border-t border-crisis-border px-4 py-2 flex items-center justify-between">
+      <footer className="flex-shrink-0 bg-crisis-surface border-t border-crisis-border px-4 py-2 flex items-center justify-between gap-2">
         <a
           href="mailto:contact@eliaman.com"
           className="flex items-center gap-1.5 text-[11px] text-gray-500 hover:text-gray-300"
         >
           <Mail size={12} />
-          contact@eliaman.com
+          <span className="hidden sm:inline">contact@eliaman.com</span>
         </a>
-        <span className="text-[11px] text-gray-600">Développé par Eliaman</span>
+        <button
+          onClick={() => setShowVigilance(true)}
+          className="flex items-center gap-1.5 text-[11px] text-gray-500 hover:text-gray-300"
+        >
+          <Info size={12} />
+          Vigilance
+        </button>
+        <a
+          href="https://feux.fixvault.fr"
+          target="_blank"
+          rel="noopener noreferrer"
+          className="flex items-center gap-1.5 text-[11px] text-orange-400 hover:text-orange-300"
+        >
+          <Flame size={12} />
+          <span>Feux</span>
+        </a>
+        <span className="text-[11px] text-gray-600">Eliaman</span>
       </footer>
+
+      {/* Vigilance sheet */}
+      {showVigilance && (
+        <>
+          <div
+            className="fixed inset-0 z-40 bg-black/70 animate-fade-in"
+            onClick={() => setShowVigilance(false)}
+          />
+          <div className="fixed bottom-0 left-0 right-0 z-50 bg-crisis-surface border-t border-crisis-border rounded-t-2xl max-h-[80vh] overflow-y-auto animate-slide-up">
+            <div className="sticky top-0 bg-crisis-surface pt-3 pb-2 px-4 border-b border-crisis-border z-10">
+              <div className="w-10 h-1 bg-gray-600 rounded-full mx-auto mb-3" />
+              <div className="flex items-center justify-between">
+                <h2 className="text-lg font-bold text-white flex items-center gap-2">
+                  <Info size={20} className="text-crisis-red" />
+                  Vigilance & responsabilités
+                </h2>
+                <button
+                  onClick={() => setShowVigilance(false)}
+                  className="p-1.5 rounded-lg hover:bg-crisis-border text-gray-400"
+                >
+                  <X size={20} />
+                </button>
+              </div>
+            </div>
+            <div className="px-4 py-4 space-y-3 text-sm text-gray-300 leading-relaxed">
+              <p>
+                GirondeEntraide est une plateforme de mise en relation
+                indépendante et non commerciale. Les annonces sont publiées par
+                les utilisateurs sous leur propre responsabilité.
+              </p>
+              <p className="text-white font-medium">À retenir :</p>
+              <ul className="space-y-2">
+                <li className="flex items-start gap-2">
+                  <span className="text-crisis-red mt-0.5">•</span>
+                  Aucune transaction financière ne doit s'effectuer via ce site
+                </li>
+                <li className="flex items-start gap-2">
+                  <span className="text-crisis-red mt-0.5">•</span>
+                  Ne partagez jamais d'informations bancaires
+                </li>
+                <li className="flex items-start gap-2">
+                  <span className="text-crisis-red mt-0.5">•</span>
+                  Privilégiez les échanges en personne dans des lieux sûrs
+                </li>
+                <li className="flex items-start gap-2">
+                  <span className="text-crisis-red mt-0.5">•</span>
+                  Vérifiez l'identité de votre interlocuteur
+                </li>
+                <li className="flex items-start gap-2">
+                  <span className="text-crisis-red mt-0.5">•</span>
+                  En cas d'urgence, appelez le 18 ou le 112
+                </li>
+              </ul>
+              <p className="text-xs text-gray-500 pt-2 border-t border-crisis-border">
+                Le site et son développeur ne sauraient être tenus responsables
+                des interactions entre utilisateurs ou des informations publiées
+                sur la plateforme.
+              </p>
+            </div>
+          </div>
+        </>
+      )}
     </div>
   );
 }

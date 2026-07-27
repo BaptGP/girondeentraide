@@ -3,10 +3,12 @@ import {
   CheckCircle2,
   Clock,
   Flag,
+  Link2,
   MapPin,
   MessageCircle,
   Navigation,
   Phone,
+  Share2,
   Trash2,
   Users,
   X,
@@ -38,6 +40,7 @@ export default function PostDetailSheet({
   const [codeInput, setCodeInput] = useState("");
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
+  const [copied, setCopied] = useState(false);
   const resolvePost = useStore((s) => s.resolvePost);
   const deletePost = useStore((s) => s.deletePost);
 
@@ -86,8 +89,14 @@ export default function PostDetailSheet({
       <div
         className="fixed inset-0 z-40 bg-black/60 animate-fade-in"
         onClick={onClose}
+        aria-hidden="true"
       />
-      <div className="fixed bottom-0 left-0 right-0 z-50 bg-crisis-surface border-t border-crisis-border rounded-t-2xl max-h-[85vh] overflow-y-auto animate-slide-up">
+      <div
+        role="dialog"
+        aria-modal="true"
+        aria-label="Détail de l'annonce"
+        className="fixed bottom-0 left-0 right-0 z-50 bg-crisis-surface border-t border-crisis-border rounded-t-2xl max-h-[85vh] overflow-y-auto animate-slide-up"
+      >
         <div className="sticky top-0 bg-crisis-surface pt-3 pb-2 px-4 border-b border-crisis-border z-10">
           <div className="w-10 h-1 bg-gray-600 rounded-full mx-auto mb-3" />
           <div className="flex items-center justify-between">
@@ -170,6 +179,45 @@ export default function PostDetailSheet({
               <Navigation size={20} />
               Itinéraire
             </a>
+          </div>
+
+          {/* Share buttons */}
+          <div className="flex items-center gap-2 pt-1">
+            <button
+              onClick={() => {
+                const text = `${post.title} — ${post.locationName}\n${post.description}\n\nVoir sur GirondeEntraide : ${window.location.origin}/?post=${post.id}`;
+                window.open(
+                  `https://wa.me/?text=${encodeURIComponent(text)}`,
+                  "_blank",
+                );
+              }}
+              className="flex items-center gap-1.5 text-xs text-gray-400 hover:text-white px-3 py-2 rounded-lg border border-crisis-border hover:border-gray-600 transition-colors"
+            >
+              <Share2 size={14} />
+              Partager
+            </button>
+            <button
+              onClick={() => {
+                const text = `${post.title} — ${post.locationName}\n${post.description}\n\n${window.location.origin}/?post=${post.id}`;
+                window.location.href = `sms:?&body=${encodeURIComponent(text)}`;
+              }}
+              className="flex items-center gap-1.5 text-xs text-gray-400 hover:text-white px-3 py-2 rounded-lg border border-crisis-border hover:border-gray-600 transition-colors"
+            >
+              <MessageCircle size={14} />
+              SMS
+            </button>
+            <button
+              onClick={() => {
+                const url = `${window.location.origin}/?post=${post.id}`;
+                navigator.clipboard.writeText(url);
+                setCopied(true);
+                setTimeout(() => setCopied(false), 2000);
+              }}
+              className="flex items-center gap-1.5 text-xs text-gray-400 hover:text-white px-3 py-2 rounded-lg border border-crisis-border hover:border-gray-600 transition-colors"
+            >
+              <Link2 size={14} />
+              {copied ? "Copié !" : "Copier le lien"}
+            </button>
           </div>
 
           {/* Manage section */}

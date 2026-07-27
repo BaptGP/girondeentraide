@@ -47,6 +47,7 @@ export default function EmergencyNumbers() {
     <>
       <button
         onClick={() => setOpen(true)}
+        aria-label="Ouvrir les numéros d'urgence"
         className="absolute bottom-5 left-5 z-30 flex items-center gap-2 bg-crisis-red text-white px-4 py-3.5 rounded-full font-bold shadow-lg shadow-crisis-red/30 hover:brightness-110 active:scale-95 transition-all"
       >
         <Siren size={20} />
@@ -58,8 +59,14 @@ export default function EmergencyNumbers() {
           <div
             className="fixed inset-0 z-40 bg-black/70 animate-fade-in"
             onClick={() => setOpen(false)}
+            aria-hidden="true"
           />
-          <div className="fixed bottom-0 left-0 right-0 z-50 bg-crisis-surface border-t border-crisis-border rounded-t-2xl max-h-[80vh] overflow-y-auto animate-slide-up">
+          <div
+            role="dialog"
+            aria-modal="true"
+            aria-label="Numéros d'urgence"
+            className="fixed bottom-0 left-0 right-0 z-50 bg-crisis-surface border-t border-crisis-border rounded-t-2xl max-h-[80vh] overflow-y-auto animate-slide-up"
+          >
             <div className="sticky top-0 bg-crisis-surface pt-3 pb-2 px-4 border-b border-crisis-border z-10">
               <div className="w-10 h-1 bg-gray-600 rounded-full mx-auto mb-3" />
               <div className="flex items-center justify-between">

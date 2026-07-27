@@ -26,6 +26,7 @@ export default function PostCard({
   return (
     <button
       onClick={onClick}
+      aria-label={`${TYPE_LABELS[post.type]} ${post.title}, ${cat?.label ?? ""}, ${post.locationName}`}
       className="w-full text-left bg-crisis-card border border-crisis-border rounded-xl p-4 hover:border-gray-600 transition-colors active:scale-[0.98] cursor-pointer"
     >
       <div className="flex items-start gap-3">
