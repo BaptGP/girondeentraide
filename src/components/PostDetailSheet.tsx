@@ -13,7 +13,8 @@ import {
   Users,
   X,
 } from "lucide-react";
-import { useState } from "react";
+import { useEffect, useState } from "react";
+import { fetchPostContact } from "../lib/supabase";
 import { useStore } from "../store";
 import type { Post } from "../types";
 import { CATEGORY_MAP, TYPE_COLORS, TYPE_LABELS } from "../types";
@@ -42,13 +43,22 @@ export default function PostDetailSheet({
   const [loading, setLoading] = useState(false);
   const [copied, setCopied] = useState(false);
   const [showImage, setShowImage] = useState(false);
+  const [contact, setContact] = useState(post.contact || "");
   const resolvePost = useStore((s) => s.resolvePost);
   const deletePost = useStore((s) => s.deletePost);
+
+  useEffect(() => {
+    if (!post.contact) {
+      fetchPostContact(post.id).then(setContact);
+    } else {
+      setContact(post.contact);
+    }
+  }, [post.id, post.contact]);
 
   const color = TYPE_COLORS[post.type];
   const cat = CATEGORY_MAP[post.category];
 
-  const phoneDigits = post.contact.replace(/\D/g, "");
+  const phoneDigits = contact.replace(/\D/g, "");
   const whatsappUrl = `https://wa.me/${phoneDigits.startsWith("0") ? "33" + phoneDigits.slice(1) : phoneDigits}`;
   const phoneUrl = `tel:${phoneDigits}`;
   const directionsUrl = `https://www.openstreetmap.org/directions?from=&to=${post.lat}%2C${post.lng}`;
@@ -164,17 +174,25 @@ export default function PostDetailSheet({
           {/* Action buttons */}
           <div className="grid grid-cols-3 gap-2 pt-2">
             <a
-              href={phoneUrl}
-              className="flex flex-col items-center gap-1.5 bg-crisis-green text-white py-3 rounded-xl font-semibold text-sm hover:brightness-110 active:scale-95 transition-all"
+              href={contact ? phoneUrl : undefined}
+              className={`flex flex-col items-center gap-1.5 py-3 rounded-xl font-semibold text-sm transition-all ${
+                contact
+                  ? "bg-crisis-green text-white hover:brightness-110 active:scale-95"
+                  : "bg-crisis-border text-gray-500"
+              }`}
             >
               <Phone size={20} />
-              Appeler
+              {contact ? "Appeler" : "Chargement..."}
             </a>
             <a
-              href={whatsappUrl}
+              href={contact ? whatsappUrl : undefined}
               target="_blank"
               rel="noopener noreferrer"
-              className="flex flex-col items-center gap-1.5 bg-[#25D366] text-white py-3 rounded-xl font-semibold text-sm hover:brightness-110 active:scale-95 transition-all"
+              className={`flex flex-col items-center gap-1.5 py-3 rounded-xl font-semibold text-sm transition-all ${
+                contact
+                  ? "bg-[#25D366] text-white hover:brightness-110 active:scale-95"
+                  : "bg-crisis-border text-gray-500"
+              }`}
             >
               <MessageCircle size={20} />
               WhatsApp

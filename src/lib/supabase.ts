@@ -29,10 +29,36 @@ async function supabaseFetch(
 
 export async function fetchPosts(): Promise<Post[]> {
   const res = await supabaseFetch(
-    "/posts?select=id,type,category,title,description,capacity,lat,lng,location_name,contact,urgent,image_url,status,created_at&order=created_at.desc",
+    "/posts?select=id,type,category,title,description,capacity,lat,lng,location_name,urgent,image_url,status,created_at&order=created_at.desc",
   );
   const rows = await res.json();
   return rows.map(mapDbToPost);
+}
+
+export async function fetchPostContact(id: string): Promise<string> {
+  const res = await supabaseFetch(`/posts?select=contact&id=eq.${id}`);
+  const rows = await res.json();
+  return (rows[0]?.contact as string) || "";
+}
+
+export async function cleanupResolvedPosts(): Promise<void> {
+  const sevenDaysAgo = new Date(
+    Date.now() - 7 * 24 * 60 * 60 * 1000,
+  ).toISOString();
+  await supabaseFetch(
+    `/posts?status=eq.resolved&created_at=lt.${sevenDaysAgo}`,
+    { method: "DELETE" },
+  );
+}
+
+export async function fetchSiteLocked(): Promise<boolean> {
+  try {
+    const res = await supabaseFetch("/site_settings?select=locked&id=eq.1");
+    const rows = await res.json();
+    return rows[0]?.locked === true;
+  } catch {
+    return false;
+  }
 }
 
 export async function createPost(

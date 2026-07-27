@@ -5,6 +5,7 @@ import {
   Flame,
   Info,
   List as ListIcon,
+  Lock,
   Mail,
   Map as MapIcon,
   Plus,
@@ -20,6 +21,8 @@ import MapContainerView from "./components/MapContainerView";
 import NewPostModal from "./components/NewPostModal";
 import PostCard from "./components/PostCard";
 import PostDetailSheet from "./components/PostDetailSheet";
+import PrivacyPolicy from "./components/PrivacyPolicy";
+import { cleanupResolvedPosts, fetchSiteLocked } from "./lib/supabase";
 import type { FilterType } from "./store";
 import { getFilteredPosts, useStore } from "./store";
 import type { Category } from "./types";
@@ -59,12 +62,16 @@ export default function App() {
   const [toast, setToast] = useState<string | null>(null);
   const [mapTarget, setMapTarget] = useState<[number, number] | null>(null);
   const [showVigilance, setShowVigilance] = useState(false);
+  const [showPrivacy, setShowPrivacy] = useState(false);
+  const [siteLocked, setSiteLocked] = useState(false);
   const [searchPos, setSearchPos] = useState<[number, number] | null>(null);
   const [searchRadius, setSearchRadius] = useState<number>(20);
   const prevPostCount = useRef(posts.length);
 
   useEffect(() => {
     const unsub = initSupabaseSync();
+    cleanupResolvedPosts();
+    fetchSiteLocked().then(setSiteLocked);
     return unsub;
   }, [initSupabaseSync]);
 
@@ -443,14 +450,21 @@ export default function App() {
         <EmergencyNumbers />
 
         {/* FAB */}
-        <button
-          onClick={openNewPostModal}
-          aria-label="Créer une nouvelle annonce"
-          className="absolute bottom-5 right-5 z-30 flex items-center gap-2 bg-crisis-red text-white pl-4 pr-5 py-3.5 rounded-full font-semibold shadow-lg shadow-crisis-red/30 hover:brightness-110 active:scale-95 transition-all"
-        >
-          <Plus size={22} />
-          <span className="text-sm">Proposer / Demander</span>
-        </button>
+        {siteLocked ? (
+          <div className="absolute bottom-5 right-5 z-30 flex items-center gap-2 bg-gray-600 text-white px-4 py-3.5 rounded-full font-semibold shadow-lg opacity-80">
+            <Lock size={20} />
+            <span className="text-sm">Création désactivée</span>
+          </div>
+        ) : (
+          <button
+            onClick={openNewPostModal}
+            aria-label="Créer une nouvelle annonce"
+            className="absolute bottom-5 right-5 z-30 flex items-center gap-2 bg-crisis-red text-white pl-4 pr-5 py-3.5 rounded-full font-semibold shadow-lg shadow-crisis-red/30 hover:brightness-110 active:scale-95 transition-all"
+          >
+            <Plus size={22} />
+            <span className="text-sm">Proposer / Demander</span>
+          </button>
+        )}
       </main>
 
       {/* Modals */}
@@ -458,6 +472,7 @@ export default function App() {
         <PostDetailSheet post={selectedPost} onClose={() => selectPost(null)} />
       )}
       {isNewPostModalOpen && <NewPostModal onClose={closeNewPostModal} />}
+      {showPrivacy && <PrivacyPolicy onClose={() => setShowPrivacy(false)} />}
 
       {/* Footer */}
       <footer className="flex-shrink-0 bg-crisis-surface border-t border-crisis-border px-4 py-2 flex items-center justify-between gap-2">
@@ -485,6 +500,12 @@ export default function App() {
           <span>Feux</span>
         </a>
         <span className="text-[11px] text-gray-600">Eliaman</span>
+        <button
+          onClick={() => setShowPrivacy(true)}
+          className="text-[11px] text-gray-500 hover:text-gray-300"
+        >
+          Confidentialité
+        </button>
       </footer>
 
       {/* Vigilance sheet */}
