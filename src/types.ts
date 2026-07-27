@@ -1,4 +1,4 @@
-export type PostType = "offer" | "request" | "official" | "volunteer";
+export type PostType = "offer" | "request" | "official" | "volunteer" | "pet";
 
 export type Category =
   | "hebergement"
@@ -7,6 +7,8 @@ export type Category =
   | "materiel"
   | "nourriture"
   | "volontaires"
+  | "perdu"
+  | "trouve"
   | "autre";
 
 export interface Post {
@@ -22,6 +24,7 @@ export interface Post {
   contact: string;
   secretCode?: string;
   urgent: boolean;
+  imageUrl?: string;
   status: "active" | "resolved";
   createdAt: string;
 }
@@ -42,7 +45,15 @@ export const CATEGORIES: CategoryInfo[] = [
   { key: "autre", label: "Autre", emoji: "❤️" },
 ];
 
-export const CATEGORY_MAP: Record<Category, CategoryInfo> = CATEGORIES.reduce(
+export const PET_CATEGORIES: CategoryInfo[] = [
+  { key: "perdu", label: "Perdu", emoji: "�" },
+  { key: "trouve", label: "Trouvé", emoji: "🐾" },
+];
+
+export const CATEGORY_MAP: Record<Category, CategoryInfo> = [
+  ...CATEGORIES,
+  ...PET_CATEGORIES,
+].reduce(
   (acc, c) => ({ ...acc, [c.key]: c }),
   {} as Record<Category, CategoryInfo>,
 );
@@ -52,6 +63,7 @@ export const TYPE_LABELS: Record<PostType, string> = {
   request: "Demande",
   official: "Point officiel",
   volunteer: "Volontaires",
+  pet: "Animal perdu/trouvé",
 };
 
 export const TYPE_COLORS: Record<PostType, string> = {
@@ -59,4 +71,5 @@ export const TYPE_COLORS: Record<PostType, string> = {
   request: "#dc2626",
   official: "#2563eb",
   volunteer: "#f59e0b",
+  pet: "#a855f7",
 };

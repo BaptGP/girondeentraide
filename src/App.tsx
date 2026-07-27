@@ -23,13 +23,14 @@ import PostDetailSheet from "./components/PostDetailSheet";
 import type { FilterType } from "./store";
 import { getFilteredPosts, useStore } from "./store";
 import type { Category } from "./types";
-import { CATEGORIES } from "./types";
+import { CATEGORIES, PET_CATEGORIES } from "./types";
 
 const TYPE_FILTERS: { key: FilterType; label: string; color: string }[] = [
   { key: "all", label: "Tous", color: "#fafafa" },
   { key: "offer", label: "Offres", color: "#16a34a" },
   { key: "request", label: "Demandes", color: "#dc2626" },
   { key: "volunteer", label: "Volontaires", color: "#f59e0b" },
+  { key: "pet", label: "Animaux", color: "#a855f7" },
   { key: "official", label: "Officiels", color: "#2563eb" },
 ];
 
@@ -146,6 +147,7 @@ export default function App() {
       offer: 0,
       request: 0,
       volunteer: 0,
+      pet: 0,
       official: 0,
     };
     for (const p of posts) {
@@ -300,7 +302,10 @@ export default function App() {
           {TYPE_FILTERS.map((tf) => (
             <button
               key={tf.key}
-              onClick={() => setFilterType(tf.key)}
+              onClick={() => {
+                setFilterType(tf.key);
+                setFilterCategory("all");
+              }}
               className={`flex-shrink-0 px-3 py-1 rounded-full text-xs font-semibold border transition-all ${
                 filterType === tf.key
                   ? "text-white"
@@ -351,7 +356,7 @@ export default function App() {
           >
             Toutes catégories
           </button>
-          {CATEGORIES.map((cat) => (
+          {(filterType === "pet" ? PET_CATEGORIES : CATEGORIES).map((cat) => (
             <button
               key={cat.key}
               onClick={() => setFilterCategory(cat.key as Category | "all")}

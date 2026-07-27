@@ -1,6 +1,7 @@
 import {
   AlertCircle,
   Building2,
+  Camera,
   Check,
   ChevronLeft,
   ChevronRight,
@@ -11,13 +12,15 @@ import {
   Loader2,
   Lock,
   MapPin,
+  PawPrint,
   Search,
   X,
 } from "lucide-react";
 import { useEffect, useRef, useState } from "react";
+import { uploadPostImage } from "../lib/supabase";
 import { useStore } from "../store";
 import type { Category, PostType } from "../types";
-import { CATEGORIES } from "../types";
+import { CATEGORIES, PET_CATEGORIES } from "../types";
 
 type Step = 1 | 2 | 3;
 
@@ -44,6 +47,9 @@ export default function NewPostModal({ onClose }: { onClose: () => void }) {
   const [geoError, setGeoError] = useState("");
   const [submitted, setSubmitted] = useState(false);
   const [copied, setCopied] = useState(false);
+  const [imageFile, setImageFile] = useState<File | null>(null);
+  const [imagePreview, setImagePreview] = useState<string | null>(null);
+  const [imageUploading, setImageUploading] = useState(false);
 
   // Address search state
   const [addrQuery, setAddrQuery] = useState("");
@@ -126,6 +132,23 @@ export default function NewPostModal({ onClose }: { onClose: () => void }) {
     );
   };
 
+  const handleImageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    if (!["image/jpeg", "image/png", "image/webp"].includes(file.type)) {
+      alert("Format non supporté. Utilisez JPG, PNG ou WebP.");
+      return;
+    }
+    if (file.size > 2 * 1024 * 1024) {
+      alert("Image trop lourde (max 2 Mo).");
+      return;
+    }
+    setImageFile(file);
+    const reader = new FileReader();
+    reader.onload = (ev) => setImagePreview(ev.target?.result as string);
+    reader.readAsDataURL(file);
+  };
+
   const canSubmit =
     type &&
     category &&
@@ -134,8 +157,15 @@ export default function NewPostModal({ onClose }: { onClose: () => void }) {
     lat !== null &&
     lng !== null;
 
-  const handleSubmit = () => {
+  const handleSubmit = async () => {
     if (!canSubmit) return;
+    let imageUrl: string | undefined;
+    if (imageFile && type === "pet") {
+      setImageUploading(true);
+      const url = await uploadPostImage(imageFile);
+      setImageUploading(false);
+      if (url) imageUrl = url;
+    }
     addPost({
       type: type!,
       category: category!,
@@ -148,6 +178,7 @@ export default function NewPostModal({ onClose }: { onClose: () => void }) {
       contact: contact.trim(),
       secretCode,
       urgent,
+      imageUrl,
     });
     setSubmitted(true);
   };
@@ -176,6 +207,12 @@ export default function NewPostModal({ onClose }: { onClose: () => void }) {
       label: "Point volontaires",
       icon: Handshake,
       color: "#f59e0b",
+    },
+    {
+      value: "pet" as PostType,
+      label: "Animal perdu/trouvé",
+      icon: PawPrint,
+      color: "#a855f7",
     },
     {
       value: "official" as PostType,
@@ -277,6 +314,7 @@ export default function NewPostModal({ onClose }: { onClose: () => void }) {
                         key={opt.value}
                         onClick={() => {
                           setType(opt.value);
+                          setCategory(null);
                           setStep(2);
                         }}
                         className={`w-full flex items-center gap-3 p-4 rounded-xl border-2 transition-all active:scale-[0.98] ${
@@ -308,22 +346,24 @@ export default function NewPostModal({ onClose }: { onClose: () => void }) {
                   <div>
                     <p className="text-sm text-gray-400 mb-3">Catégorie</p>
                     <div className="grid grid-cols-2 gap-2">
-                      {CATEGORIES.map((cat) => (
-                        <button
-                          key={cat.key}
-                          onClick={() => setCategory(cat.key)}
-                          className={`flex items-center gap-2 p-3 rounded-xl border-2 transition-all ${
-                            category === cat.key
-                              ? "border-crisis-red bg-crisis-red/10"
-                              : "border-crisis-border hover:border-gray-600"
-                          }`}
-                        >
-                          <span className="text-xl">{cat.emoji}</span>
-                          <span className="text-sm font-medium text-white text-left">
-                            {cat.label}
-                          </span>
-                        </button>
-                      ))}
+                      {(type === "pet" ? PET_CATEGORIES : CATEGORIES).map(
+                        (cat) => (
+                          <button
+                            key={cat.key}
+                            onClick={() => setCategory(cat.key)}
+                            className={`flex items-center gap-2 p-3 rounded-xl border-2 transition-all ${
+                              category === cat.key
+                                ? "border-crisis-red bg-crisis-red/10"
+                                : "border-crisis-border hover:border-gray-600"
+                            }`}
+                          >
+                            <span className="text-xl">{cat.emoji}</span>
+                            <span className="text-sm font-medium text-white text-left">
+                              {cat.label}
+                            </span>
+                          </button>
+                        ),
+                      )}
                     </div>
                   </div>
 
@@ -423,12 +463,16 @@ export default function NewPostModal({ onClose }: { onClose: () => void }) {
                 <div className="space-y-4">
                   <div>
                     <label className="text-sm text-gray-400 mb-1.5 block">
-                      Titre court *
+                      {type === "pet" ? "Nom de l'animal *" : "Titre court *"}
                     </label>
                     <input
                       type="text"
                       maxLength={80}
-                      placeholder="ex: Maison avec 2 chambres disponibles"
+                      placeholder={
+                        type === "pet"
+                          ? "ex: Médor, chat tigré..."
+                          : "ex: Maison avec 2 chambres disponibles"
+                      }
                       value={title}
                       onChange={(e) => setTitle(e.target.value)}
                       className="w-full bg-crisis-dark border border-crisis-border rounded-lg px-4 py-2.5 text-white text-sm focus:outline-none focus:border-crisis-red"
@@ -442,32 +486,80 @@ export default function NewPostModal({ onClose }: { onClose: () => void }) {
                     <textarea
                       maxLength={500}
                       rows={3}
-                      placeholder="Détails importants : conditions, disponibilités..."
+                      placeholder={
+                        type === "pet"
+                          ? "Race, couleur, taille, lieu, circonstances..."
+                          : "Détails importants : conditions, disponibilités..."
+                      }
                       value={description}
                       onChange={(e) => setDescription(e.target.value)}
                       className="w-full bg-crisis-dark border border-crisis-border rounded-lg px-4 py-2.5 text-white text-sm focus:outline-none focus:border-crisis-red resize-none"
                     />
                   </div>
 
-                  <div className="grid grid-cols-2 gap-3">
+                  {type === "pet" && (
                     <div>
                       <label className="text-sm text-gray-400 mb-1.5 block">
-                        {type === "offer"
-                          ? "Places / Capacité"
-                          : "Nb personnes"}
+                        Photo de l'animal
                       </label>
-                      <input
-                        type="number"
-                        min={0}
-                        value={capacity || ""}
-                        onChange={(e) =>
-                          setCapacity(parseInt(e.target.value) || 0)
-                        }
-                        placeholder="0"
-                        className="w-full bg-crisis-dark border border-crisis-border rounded-lg px-4 py-2.5 text-white text-sm focus:outline-none focus:border-crisis-red"
-                      />
+                      {imagePreview ? (
+                        <div className="relative">
+                          <img
+                            src={imagePreview}
+                            alt="Aperçu"
+                            className="w-full h-48 object-cover rounded-lg border border-crisis-border"
+                          />
+                          <button
+                            type="button"
+                            onClick={() => {
+                              setImageFile(null);
+                              setImagePreview(null);
+                            }}
+                            className="absolute top-2 right-2 bg-black/70 text-white p-1.5 rounded-lg hover:bg-black/90"
+                          >
+                            <X size={16} />
+                          </button>
+                        </div>
+                      ) : (
+                        <label className="flex flex-col items-center justify-center gap-2 w-full h-32 bg-crisis-dark border border-dashed border-crisis-border rounded-lg cursor-pointer hover:border-purple-500 transition-colors">
+                          <Camera size={24} className="text-gray-500" />
+                          <span className="text-xs text-gray-500">
+                            Ajouter une photo (JPG, PNG, max 2 Mo)
+                          </span>
+                          <input
+                            type="file"
+                            accept="image/jpeg,image/png,image/webp"
+                            onChange={handleImageChange}
+                            className="hidden"
+                          />
+                        </label>
+                      )}
                     </div>
-                    <div>
+                  )}
+
+                  <div
+                    className={type === "pet" ? "" : "grid grid-cols-2 gap-3"}
+                  >
+                    {type !== "pet" && (
+                      <div>
+                        <label className="text-sm text-gray-400 mb-1.5 block">
+                          {type === "offer"
+                            ? "Places / Capacité"
+                            : "Nb personnes"}
+                        </label>
+                        <input
+                          type="number"
+                          min={0}
+                          value={capacity || ""}
+                          onChange={(e) =>
+                            setCapacity(parseInt(e.target.value) || 0)
+                          }
+                          placeholder="0"
+                          className="w-full bg-crisis-dark border border-crisis-border rounded-lg px-4 py-2.5 text-white text-sm focus:outline-none focus:border-crisis-red"
+                        />
+                      </div>
+                    )}
+                    <div className={type === "pet" ? "" : ""}>
                       <label className="text-sm text-gray-400 mb-1.5 block">
                         Téléphone *
                       </label>
@@ -537,10 +629,10 @@ export default function NewPostModal({ onClose }: { onClose: () => void }) {
                     </button>
                     <button
                       onClick={handleSubmit}
-                      disabled={!canSubmit}
+                      disabled={!canSubmit || imageUploading}
                       className="flex-1 bg-crisis-green text-white py-2.5 rounded-xl font-semibold disabled:opacity-40 hover:brightness-110"
                     >
-                      Publier
+                      {imageUploading ? "Upload..." : "Publier"}
                     </button>
                   </div>
                 </div>

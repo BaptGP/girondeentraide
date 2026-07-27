@@ -41,6 +41,7 @@ export default function PostDetailSheet({
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
   const [copied, setCopied] = useState(false);
+  const [showImage, setShowImage] = useState(false);
   const resolvePost = useStore((s) => s.resolvePost);
   const deletePost = useStore((s) => s.deletePost);
 
@@ -126,6 +127,14 @@ export default function PostDetailSheet({
         </div>
 
         <div className="px-4 py-4 space-y-4">
+          {post.imageUrl && (
+            <img
+              src={post.imageUrl}
+              alt={post.title}
+              onClick={() => setShowImage(true)}
+              className="w-full max-h-64 object-contain rounded-xl border border-crisis-border cursor-pointer hover:brightness-90 transition-all bg-crisis-dark"
+            />
+          )}
           <h2 className="text-xl font-bold text-white leading-snug">
             {post.title}
           </h2>
@@ -287,6 +296,26 @@ export default function PostDetailSheet({
           </div>
         </div>
       </div>
+
+      {/* Fullscreen image viewer */}
+      {showImage && post.imageUrl && (
+        <div
+          className="fixed inset-0 z-[60] bg-black/90 flex items-center justify-center animate-fade-in"
+          onClick={() => setShowImage(false)}
+        >
+          <button
+            onClick={() => setShowImage(false)}
+            className="absolute top-4 right-4 text-white p-2 rounded-lg bg-white/10 hover:bg-white/20"
+          >
+            <X size={24} />
+          </button>
+          <img
+            src={post.imageUrl}
+            alt={post.title}
+            className="max-w-[90vw] max-h-[90vh] object-contain rounded-lg"
+          />
+        </div>
+      )}
     </>
   );
 }
