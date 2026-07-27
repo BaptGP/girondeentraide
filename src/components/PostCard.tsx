@@ -30,12 +30,20 @@ export default function PostCard({
       className="w-full text-left bg-crisis-card border border-crisis-border rounded-xl p-4 hover:border-gray-600 transition-colors active:scale-[0.98] cursor-pointer"
     >
       <div className="flex items-start gap-3">
-        <div
-          className="flex-shrink-0 w-10 h-10 rounded-full flex items-center justify-center text-lg"
-          style={{ backgroundColor: color }}
-        >
-          {cat?.emoji ?? "📍"}
-        </div>
+        {post.imageUrl ? (
+          <img
+            src={post.imageUrl}
+            alt={post.title}
+            className="flex-shrink-0 w-14 h-14 rounded-lg object-cover border border-crisis-border"
+          />
+        ) : (
+          <div
+            className="flex-shrink-0 w-10 h-10 rounded-full flex items-center justify-center text-lg"
+            style={{ backgroundColor: color }}
+          >
+            {cat?.emoji ?? "📍"}
+          </div>
+        )}
 
         <div className="flex-1 min-w-0">
           <div className="flex items-center gap-2 mb-1">

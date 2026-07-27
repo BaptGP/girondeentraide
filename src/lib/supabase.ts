@@ -29,7 +29,7 @@ async function supabaseFetch(
 
 export async function fetchPosts(): Promise<Post[]> {
   const res = await supabaseFetch(
-    "/posts?select=id,type,category,title,description,capacity,lat,lng,location_name,contact,urgent,status,created_at&order=created_at.desc",
+    "/posts?select=id,type,category,title,description,capacity,lat,lng,location_name,contact,urgent,image_url,status,created_at&order=created_at.desc",
   );
   const rows = await res.json();
   return rows.map(mapDbToPost);
@@ -39,7 +39,7 @@ export async function createPost(
   data: Omit<Post, "id" | "createdAt" | "status">,
 ): Promise<Post | null> {
   const res = await supabaseFetch(
-    "/posts?select=id,type,category,title,description,capacity,lat,lng,location_name,contact,urgent,status,created_at",
+    "/posts?select=id,type,category,title,description,capacity,lat,lng,location_name,contact,urgent,image_url,status,created_at",
     {
       method: "POST",
       body: JSON.stringify({
@@ -54,6 +54,7 @@ export async function createPost(
         contact: data.contact,
         secret_code: data.secretCode,
         urgent: data.urgent,
+        image_url: data.imageUrl || null,
         status: "active",
       }),
       headers: { Prefer: "return=representation" },
@@ -91,7 +92,83 @@ export async function deletePost(
   );
   if (!res.ok) return false;
   const rows = await res.json();
-  return rows.length > 0;
+  if (rows.length === 0) return false;
+
+  const imageUrl = rows[0].image_url as string | null;
+  if (imageUrl) {
+    try {
+      const path = imageUrl.split("/posts-images/")[1];
+      if (path) {
+        await fetch(`${SUPABASE_URL}/storage/v1/object/posts-images/${path}`, {
+          method: "DELETE",
+          headers: {
+            apikey: SUPABASE_ANON_KEY!,
+            Authorization: `Bearer ${SUPABASE_ANON_KEY}`,
+          },
+        });
+      }
+    } catch {
+      // Image deletion failed, but post is already deleted
+    }
+  }
+  return true;
+}
+
+async function compressImage(
+  file: File,
+  maxW = 800,
+  quality = 0.8,
+): Promise<File> {
+  const img = new Image();
+  const url = URL.createObjectURL(file);
+  await new Promise((resolve, reject) => {
+    img.onload = resolve;
+    img.onerror = reject;
+    img.src = url;
+  });
+  URL.revokeObjectURL(url);
+
+  let { width, height } = img;
+  if (width > maxW) {
+    height = Math.round((height * maxW) / width);
+    width = maxW;
+  }
+
+  const canvas = document.createElement("canvas");
+  canvas.width = width;
+  canvas.height = height;
+  const ctx = canvas.getContext("2d")!;
+  ctx.drawImage(img, 0, 0, width, height);
+  const blob = await new Promise<Blob>((resolve) =>
+    canvas.toBlob((b) => resolve(b!), "image/jpeg", quality),
+  );
+  return new File([blob], "photo.jpg", { type: "image/jpeg" });
+}
+
+export async function uploadPostImage(file: File): Promise<string | null> {
+  if (!SUPABASE_URL || !SUPABASE_ANON_KEY) return null;
+  const allowedTypes = ["image/jpeg", "image/png", "image/webp"];
+  if (!allowedTypes.includes(file.type)) return null;
+  if (file.size > 2 * 1024 * 1024) return null;
+
+  const compressed = await compressImage(file);
+  const formData = new FormData();
+  formData.append("file", compressed);
+
+  const fileName = `${crypto.randomUUID()}.jpg`;
+  const res = await fetch(
+    `${SUPABASE_URL}/storage/v1/object/posts-images/${fileName}`,
+    {
+      method: "POST",
+      headers: {
+        apikey: SUPABASE_ANON_KEY,
+        Authorization: `Bearer ${SUPABASE_ANON_KEY}`,
+      },
+      body: formData,
+    },
+  );
+  if (!res.ok) return null;
+  return `${SUPABASE_URL}/storage/v1/object/public/posts-images/${fileName}`;
 }
 
 export function subscribeToPosts(
@@ -163,6 +240,7 @@ function mapDbToPost(row: Record<string, unknown>): Post {
     locationName: (row.location_name as string) || "",
     contact: (row.contact as string) || "",
     urgent: (row.urgent as boolean) || false,
+    imageUrl: (row.image_url as string) || undefined,
     status: (row.status as "active" | "resolved") || "active",
     createdAt: (row.created_at as string) || new Date().toISOString(),
   };
