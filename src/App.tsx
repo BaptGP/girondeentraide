@@ -107,6 +107,7 @@ export default function App() {
       all: 0,
       offer: 0,
       request: 0,
+      volunteer: 0,
       official: 0,
     };
     for (const p of posts) {
