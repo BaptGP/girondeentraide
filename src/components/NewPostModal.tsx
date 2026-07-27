@@ -3,6 +3,7 @@ import {
   Building2,
   Camera,
   Check,
+  CheckCircle2,
   ChevronLeft,
   ChevronRight,
   Copy,
@@ -50,6 +51,56 @@ export default function NewPostModal({ onClose }: { onClose: () => void }) {
   const [imageFile, setImageFile] = useState<File | null>(null);
   const [imagePreview, setImagePreview] = useState<string | null>(null);
   const [imageUploading, setImageUploading] = useState(false);
+  const [turnstileToken, setTurnstileToken] = useState<string | null>(null);
+  const turnstileRef = useRef<HTMLDivElement>(null);
+  const turnstileWidgetId = useRef<string | null>(null);
+
+  useEffect(() => {
+    if (step !== 3 || !turnstileRef.current) return;
+
+    const renderTurnstile = () => {
+      if (turnstileWidgetId.current) return;
+      const ts = (
+        window as unknown as {
+          turnstile?: {
+            render: (el: HTMLElement, opts: Record<string, unknown>) => string;
+          };
+        }
+      ).turnstile;
+      if (ts && turnstileRef.current) {
+        turnstileWidgetId.current = ts.render(turnstileRef.current, {
+          sitekey: "0x4AAAAAAD_XtFuYMU3Qxcev",
+          callback: (token: string) => setTurnstileToken(token),
+          "expired-callback": () => setTurnstileToken(null),
+          "error-callback": () => setTurnstileToken(null),
+        });
+      }
+    };
+
+    const ts = (window as unknown as { turnstile?: unknown }).turnstile;
+    if (ts) {
+      renderTurnstile();
+    } else {
+      const interval = setInterval(() => {
+        if ((window as unknown as { turnstile?: unknown }).turnstile) {
+          renderTurnstile();
+          clearInterval(interval);
+        }
+      }, 200);
+      return () => clearInterval(interval);
+    }
+
+    return () => {
+      const tsApi = (
+        window as unknown as { turnstile?: { remove: (id: string) => void } }
+      ).turnstile;
+      if (tsApi && turnstileWidgetId.current) {
+        tsApi.remove(turnstileWidgetId.current);
+        turnstileWidgetId.current = null;
+      }
+      setTurnstileToken(null);
+    };
+  }, [step]);
 
   // Address search state
   const [addrQuery, setAddrQuery] = useState("");
@@ -155,10 +206,16 @@ export default function NewPostModal({ onClose }: { onClose: () => void }) {
     title.trim() &&
     contact.trim() &&
     lat !== null &&
-    lng !== null;
+    lng !== null &&
+    turnstileToken !== null;
 
   const handleSubmit = async () => {
     if (!canSubmit) return;
+    const urlPattern = /https?:\/\/|www\./i;
+    if (urlPattern.test(title) || urlPattern.test(description)) {
+      alert("Les liens ne sont pas autorisés dans les annonces.");
+      return;
+    }
     let imageUrl: string | undefined;
     if (imageFile && type === "pet") {
       setImageUploading(true);
@@ -617,6 +674,18 @@ export default function NewPostModal({ onClose }: { onClose: () => void }) {
                         </div>
                       </div>
                     </div>
+                  )}
+
+                  <div ref={turnstileRef}></div>
+                  {turnstileToken ? (
+                    <p className="text-xs text-green-500 flex items-center gap-1 -mt-2">
+                      <CheckCircle2 size={14} />
+                      Vérification réussie
+                    </p>
+                  ) : (
+                    <p className="text-xs text-gray-500 -mt-2">
+                      Vérification anti-spam requise pour publier
+                    </p>
                   )}
 
                   <div className="flex gap-2 pt-2">

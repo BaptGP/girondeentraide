@@ -1,4 +1,5 @@
 import L from "leaflet";
+import "leaflet.markercluster";
 import { useEffect, useMemo } from "react";
 import { Circle, MapContainer, Marker, TileLayer, useMap } from "react-leaflet";
 import type { Post } from "../types";
@@ -42,6 +43,33 @@ function createDivIcon(post: Post): L.DivIcon {
     iconSize: [size, size],
     iconAnchor: [size / 2, size / 2],
     popupAnchor: [0, -size / 2],
+  });
+}
+
+function createClusterIcon(cluster: L.MarkerCluster): L.DivIcon {
+  const count = cluster.getChildCount();
+  const size = count > 20 ? 48 : count > 10 ? 42 : 36;
+  return L.divIcon({
+    className: "custom-cluster",
+    html: `
+      <div style="
+        width: ${size}px;
+        height: ${size}px;
+        border-radius: 50%;
+        background: rgba(220, 38, 38, 0.85);
+        border: 2px solid white;
+        box-shadow: 0 2px 8px rgba(0,0,0,0.4);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        color: white;
+        font-weight: 700;
+        font-size: ${size * 0.4}px;
+        cursor: pointer;
+      ">${count}</div>
+    `,
+    iconSize: [size, size],
+    iconAnchor: [size / 2, size / 2],
   });
 }
 
@@ -89,6 +117,45 @@ function MapController({
   return null;
 }
 
+function ClusteredMarkers({
+  posts,
+  onSelectPost,
+}: {
+  posts: Post[];
+  onSelectPost: (id: string) => void;
+}) {
+  const map = useMap();
+  const markers = useMemo(
+    () =>
+      posts.map((post) => {
+        const marker = L.marker([post.lat, post.lng], {
+          icon: createDivIcon(post),
+        });
+        marker.on("click", () => onSelectPost(post.id));
+        return marker;
+      }),
+    [posts, onSelectPost],
+  );
+
+  useEffect(() => {
+    const clusterGroup = L.markerClusterGroup({
+      iconCreateFunction: createClusterIcon,
+      showCoverageOnHover: false,
+      maxClusterRadius: 50,
+      spiderfyOnMaxZoom: true,
+    });
+
+    markers.forEach((m) => clusterGroup.addLayer(m));
+    map.addLayer(clusterGroup);
+
+    return () => {
+      map.removeLayer(clusterGroup);
+    };
+  }, [map, markers]);
+
+  return null;
+}
+
 export default function MapContainerView({
   posts,
   selectedPostId,
@@ -102,15 +169,6 @@ export default function MapContainerView({
   userPos: [number, number] | null;
   mapTarget: [number, number] | null;
 }) {
-  const markers = useMemo(
-    () =>
-      posts.map((post) => ({
-        post,
-        icon: createDivIcon(post),
-      })),
-    [posts],
-  );
-
   const userIcon = useMemo(
     () =>
       L.divIcon({
@@ -136,16 +194,7 @@ export default function MapContainerView({
           attribution="&copy; OpenStreetMap"
         />
 
-        {markers.map(({ post, icon }) => (
-          <Marker
-            key={post.id}
-            position={[post.lat, post.lng]}
-            icon={icon}
-            eventHandlers={{
-              click: () => onSelectPost(post.id),
-            }}
-          />
-        ))}
+        <ClusteredMarkers posts={posts} onSelectPost={onSelectPost} />
 
         {userPos && (
           <>
