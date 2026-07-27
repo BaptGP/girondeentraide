@@ -34,6 +34,7 @@ export default function PostCard({
           <img
             src={post.imageUrl}
             alt={post.title}
+            loading="lazy"
             className="flex-shrink-0 w-14 h-14 rounded-lg object-cover border border-crisis-border"
           />
         ) : (
