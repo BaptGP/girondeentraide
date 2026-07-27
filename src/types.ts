@@ -20,7 +20,7 @@ export interface Post {
   lng: number;
   locationName: string;
   contact: string;
-  secretCode: string;
+  secretCode?: string;
   urgent: boolean;
   status: "active" | "resolved";
   createdAt: string;

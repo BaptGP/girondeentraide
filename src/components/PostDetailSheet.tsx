@@ -37,6 +37,7 @@ export default function PostDetailSheet({
   const [showManage, setShowManage] = useState(false);
   const [codeInput, setCodeInput] = useState("");
   const [error, setError] = useState("");
+  const [loading, setLoading] = useState(false);
   const resolvePost = useStore((s) => s.resolvePost);
   const deletePost = useStore((s) => s.deletePost);
 
@@ -48,12 +49,15 @@ export default function PostDetailSheet({
   const phoneUrl = `tel:${phoneDigits}`;
   const directionsUrl = `https://www.openstreetmap.org/directions?from=&to=${post.lat}%2C${post.lng}`;
 
-  const handleResolve = () => {
+  const handleResolve = async () => {
     if (codeInput.length !== 4) {
       setError("Code à 4 chiffres requis");
       return;
     }
-    const ok = resolvePost(post.id, codeInput);
+    setLoading(true);
+    setError("");
+    const ok = await resolvePost(post.id, codeInput);
+    setLoading(false);
     if (!ok) {
       setError("Code incorrect");
       return;
@@ -61,12 +65,15 @@ export default function PostDetailSheet({
     onClose();
   };
 
-  const handleDelete = () => {
+  const handleDelete = async () => {
     if (codeInput.length !== 4) {
       setError("Code à 4 chiffres requis");
       return;
     }
-    const ok = deletePost(post.id, codeInput);
+    setLoading(true);
+    setError("");
+    const ok = await deletePost(post.id, codeInput);
+    setLoading(false);
     if (!ok) {
       setError("Code incorrect");
       return;
@@ -212,17 +219,19 @@ export default function PostDetailSheet({
                 <div className="grid grid-cols-2 gap-2">
                   <button
                     onClick={handleResolve}
-                    className="flex items-center justify-center gap-1.5 bg-crisis-green/20 text-crisis-green border border-crisis-green/40 py-2.5 rounded-lg text-sm font-semibold hover:bg-crisis-green/30"
+                    disabled={loading}
+                    className="flex items-center justify-center gap-1.5 bg-crisis-green/20 text-crisis-green border border-crisis-green/40 py-2.5 rounded-lg text-sm font-semibold hover:bg-crisis-green/30 disabled:opacity-50"
                   >
                     <CheckCircle2 size={16} />
-                    Résolu
+                    {loading ? "..." : "Résolu"}
                   </button>
                   <button
                     onClick={handleDelete}
-                    className="flex items-center justify-center gap-1.5 bg-crisis-red/20 text-crisis-red border border-crisis-red/40 py-2.5 rounded-lg text-sm font-semibold hover:bg-crisis-red/30"
+                    disabled={loading}
+                    className="flex items-center justify-center gap-1.5 bg-crisis-red/20 text-crisis-red border border-crisis-red/40 py-2.5 rounded-lg text-sm font-semibold hover:bg-crisis-red/30 disabled:opacity-50"
                   >
                     <Trash2 size={16} />
-                    Supprimer
+                    {loading ? "..." : "Supprimer"}
                   </button>
                 </div>
               </div>

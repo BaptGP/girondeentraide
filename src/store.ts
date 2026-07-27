@@ -31,8 +31,8 @@ interface AppState {
   openNewPostModal: () => void;
   closeNewPostModal: () => void;
   addPost: (post: Omit<Post, "id" | "createdAt" | "status">) => Post;
-  resolvePost: (id: string, secretCode: string) => boolean;
-  deletePost: (id: string, secretCode: string) => boolean;
+  resolvePost: (id: string, secretCode: string) => Promise<boolean>;
+  deletePost: (id: string, secretCode: string) => Promise<boolean>;
   initSupabaseSync: () => () => void;
   upsertPost: (post: Post) => void;
   removePost: (id: string) => void;
@@ -88,28 +88,24 @@ export const useStore = create<AppState>()((set, get) => ({
     return post;
   },
 
-  resolvePost: (id, secretCode) => {
-    const post = get().posts.find((p) => p.id === id);
-    if (!post || post.secretCode !== secretCode) return false;
-    set((state) => ({
-      posts: state.posts.map((p) =>
-        p.id === id ? { ...p, status: "resolved" as const } : p,
-      ),
-    }));
-    sbUpdatePostStatus(id, secretCode, "resolved").catch((e) =>
-      console.error("[resolvePost] supabase error", e),
-    );
-    return true;
+  resolvePost: async (id, secretCode) => {
+    const ok = await sbUpdatePostStatus(id, secretCode, "resolved");
+    if (ok) {
+      set((state) => ({
+        posts: state.posts.map((p) =>
+          p.id === id ? { ...p, status: "resolved" as const } : p,
+        ),
+      }));
+    }
+    return ok;
   },
 
-  deletePost: (id, secretCode) => {
-    const post = get().posts.find((p) => p.id === id);
-    if (!post || post.secretCode !== secretCode) return false;
-    set((state) => ({ posts: state.posts.filter((p) => p.id !== id) }));
-    sbDeletePost(id, secretCode).catch((e) =>
-      console.error("[deletePost] supabase error", e),
-    );
-    return true;
+  deletePost: async (id, secretCode) => {
+    const ok = await sbDeletePost(id, secretCode);
+    if (ok) {
+      set((state) => ({ posts: state.posts.filter((p) => p.id !== id) }));
+    }
+    return ok;
   },
 
   upsertPost: (post) => {

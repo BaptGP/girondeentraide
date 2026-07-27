@@ -28,7 +28,9 @@ async function supabaseFetch(
 }
 
 export async function fetchPosts(): Promise<Post[]> {
-  const res = await supabaseFetch("/posts?select=*&order=created_at.desc");
+  const res = await supabaseFetch(
+    "/posts?select=id,type,category,title,description,capacity,lat,lng,location_name,contact,urgent,status,created_at&order=created_at.desc",
+  );
   const rows = await res.json();
   return rows.map(mapDbToPost);
 }
@@ -36,24 +38,27 @@ export async function fetchPosts(): Promise<Post[]> {
 export async function createPost(
   data: Omit<Post, "id" | "createdAt" | "status">,
 ): Promise<Post | null> {
-  const res = await supabaseFetch("/posts", {
-    method: "POST",
-    body: JSON.stringify({
-      type: data.type,
-      category: data.category,
-      title: data.title,
-      description: data.description,
-      capacity: data.capacity,
-      lat: data.lat,
-      lng: data.lng,
-      location_name: data.locationName,
-      contact: data.contact,
-      secret_code: data.secretCode,
-      urgent: data.urgent,
-      status: "active",
-    }),
-    headers: { Prefer: "return=representation" },
-  });
+  const res = await supabaseFetch(
+    "/posts?select=id,type,category,title,description,capacity,lat,lng,location_name,contact,urgent,status,created_at",
+    {
+      method: "POST",
+      body: JSON.stringify({
+        type: data.type,
+        category: data.category,
+        title: data.title,
+        description: data.description,
+        capacity: data.capacity,
+        lat: data.lat,
+        lng: data.lng,
+        location_name: data.locationName,
+        contact: data.contact,
+        secret_code: data.secretCode,
+        urgent: data.urgent,
+        status: "active",
+      }),
+      headers: { Prefer: "return=representation" },
+    },
+  );
   const rows = await res.json();
   return rows[0] ? mapDbToPost(rows[0]) : null;
 }
@@ -68,9 +73,12 @@ export async function updatePostStatus(
     {
       method: "PATCH",
       body: JSON.stringify({ status }),
+      headers: { Prefer: "return=representation" },
     },
   );
-  return res.ok;
+  if (!res.ok) return false;
+  const rows = await res.json();
+  return rows.length > 0;
 }
 
 export async function deletePost(
@@ -79,9 +87,11 @@ export async function deletePost(
 ): Promise<boolean> {
   const res = await supabaseFetch(
     `/posts?id=eq.${id}&secret_code=eq.${secretCode}`,
-    { method: "DELETE" },
+    { method: "DELETE", headers: { Prefer: "return=representation" } },
   );
-  return res.ok;
+  if (!res.ok) return false;
+  const rows = await res.json();
+  return rows.length > 0;
 }
 
 export function subscribeToPosts(
@@ -152,7 +162,6 @@ function mapDbToPost(row: Record<string, unknown>): Post {
     lng: row.lng as number,
     locationName: (row.location_name as string) || "",
     contact: (row.contact as string) || "",
-    secretCode: (row.secret_code as string) || "",
     urgent: (row.urgent as boolean) || false,
     status: (row.status as "active" | "resolved") || "active",
     createdAt: (row.created_at as string) || new Date().toISOString(),
