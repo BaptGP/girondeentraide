@@ -1,55 +1,111 @@
-# GirondeEntraide 🚨
+# GirondeEntraide — Plateforme d'aide incendie Gironde
 
-PWA d'entraide d'urgence pour les incendies en Gironde (33).
+Plateforme d'entraide d'urgence pour les incendies en Gironde (33). Carte interactive en temps réel permettant de proposer ou demander de l'aide : hébergement, transport, accueil d'animaux, matériel, nourriture, points de rassemblement de volontaires.
+
+**En ligne** : [www.girondeentraide.fr](https://www.girondeentraide.fr/)
+
+## Stack technique
+
+- **React 18** + **Vite** + **TypeScript**
+- **Tailwind CSS** pour le styling
+- **Zustand** pour la gestion d'état
+- **Leaflet** + **OpenStreetMap** pour la carte interactive
+- **Supabase** (PostgreSQL) pour la base de données et le temps réel
+- **PWA** — installable sur mobile, fonctionne hors-ligne
 
 ## Démarrage rapide
 
+### Prérequis
+
+- Node.js 18+
+- npm
+
+### Installation
+
 ```bash
+git clone https://github.com/BaptGP/girondeentraide.git
+cd girondeentraide
 npm install
+```
+
+### Configuration
+
+Copiez le fichier d'exemple et renseignez vos clés Supabase :
+
+```bash
+cp .env.example .env
+```
+
+Renseignez dans `.env` :
+
+```
+VITE_SUPABASE_URL=https://votre-projet.supabase.co
+VITE_SUPABASE_ANON_KEY=votre-clé-anon
+```
+
+### Base de données
+
+Exécutez le script `supabase_schema.sql` dans le SQL Editor de votre projet Supabase pour créer la table `posts` avec les contraintes nécessaires.
+
+### Lancement
+
+```bash
 npm run dev
 ```
 
-L'application tourne immédiatement avec des données mockées (LocalStorage). Aucune configuration backend nécessaire.
+L'application est disponible sur `http://localhost:5173`.
 
-## Stack
+### Build
 
-- **React + Vite + TypeScript**
-- **Tailwind CSS** — UI sombre, contraste élevé, lisible en crise
-- **Leaflet + react-leaflet** — Cartographie OpenStreetMap gratuite
-- **Zustand** — Gestion d'état légère
-- **Lucide-react** — Icônes claires
-- **vite-plugin-pwa** — Offline-ready
+```bash
+npm run build
+```
+
+Les fichiers de production sont générés dans `dist/`.
+
+## Structure du projet
+
+```
+src/
+├── App.tsx                  # Composant principal, filtres, layout
+├── main.tsx                 # Point d'entrée
+├── store.ts                 # Store Zustand (état global)
+├── types.ts                 # Types TypeScript et constantes
+├── lib/
+│   └── supabase.ts          # API Supabase (CRUD + realtime)
+├── components/
+│   ├── AddressSearch.tsx    # Recherche d'adresse (Nominatim)
+│   ├── EmergencyNumbers.tsx # Bouton SOS + numéros d'urgence
+│   ├── MapContainerView.tsx # Carte Leaflet avec markers
+│   ├── NewPostModal.tsx     # Formulaire de création d'annonce
+│   ├── PostCard.tsx         # Carte d'annonce (vue liste)
+│   └── PostDetailSheet.tsx  # Détail d'une annonce
+└── index.css                # Styles Tailwind + thème
+```
 
 ## Fonctionnalités
 
-- 🗺️ Carte interactive centrée sur la Gironde
-- 🟢 Offres d'entraide / 🔴 Demandes d'urgence / 🔵 Points officiels
-- 📍 Géolocalisation automatique
-- 📱 PWA installable, fonctionne hors-ligne
-- 🔐 Code secret à 4 chiffres pour gérer ses annonces (sans compte)
+- Carte interactive avec markers en temps réel
+- Création d'annonces (offres, demandes, volontaires, points officiels)
+- Catégories : hébergement, animaux, transport, matériel, nourriture, volontaires
+- Niveau d'urgence pour les demandes critiques
+- Filtrage par type, catégorie, tri par urgence
+- Recherche d'adresse avec autocomplétion
+- Géolocalisation de l'utilisateur
+- Bouton SOS avec numéros d'urgence
+- Signalement d'abus
+- Synchronisation temps réel via Supabase
+- PWA — installable et hors-ligne
+- SEO optimisé (sitemap, robots.txt, JSON-LD, Open Graph)
 
-## Brancher Supabase (optionnel)
+## Déploiement
 
-1. Créer un projet sur [supabase.com](https://supabase.com)
-2. Copier `.env.example` en `.env` et remplir les clés
-3. Le helper `src/lib/supabase.ts` détecte automatiquement les variables et bascule du mock vers Supabase
+Le projet est déployé sur **Vercel**. La configuration est dans `vercel.json`.
 
-## Schéma SQL Supabase
+## Auteur
 
-```sql
-create table posts (
-  id uuid default gen_random_uuid() primary key,
-  type text not null check (type in ('offer', 'request', 'official')),
-  category text not null,
-  title text not null,
-  description text,
-  capacity int default 0,
-  lat float8 not null,
-  lng float8 not null,
-  location_name text,
-  contact text,
-  secret_code text not null,
-  status text default 'active',
-  created_at timestamptz default now()
-);
-```
+**Eliaman** — contact@eliaman.com
+
+## Licence
+
+MIT — libre d'utilisation et de modification.
