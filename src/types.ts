@@ -73,3 +73,12 @@ export const TYPE_COLORS: Record<PostType, string> = {
   volunteer: "#f59e0b",
   pet: "#a855f7",
 };
+
+export const TYPE_FILTERS: { key: string; label: string; color: string }[] = [
+  { key: "all", label: "Tous", color: "#fafafa" },
+  { key: "offer", label: "Offres", color: "#16a34a" },
+  { key: "request", label: "Demandes", color: "#dc2626" },
+  { key: "volunteer", label: "Volontaires", color: "#f59e0b" },
+  { key: "pet", label: "Animaux", color: "#a855f7" },
+  { key: "official", label: "Officiels", color: "#2563eb" },
+];

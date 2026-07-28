@@ -61,6 +61,29 @@ export async function fetchSiteLocked(): Promise<boolean> {
   }
 }
 
+export async function createAlert(data: {
+  email: string;
+  filterType: string;
+  category: string;
+  lat: number;
+  lng: number;
+  radiusKm: number;
+  postId?: string;
+}): Promise<void> {
+  await supabaseFetch("/alerts", {
+    method: "POST",
+    body: JSON.stringify({
+      email: data.email,
+      filter_type: data.filterType,
+      category: data.category,
+      lat: data.lat,
+      lng: data.lng,
+      radius_km: data.radiusKm,
+      post_id: data.postId || null,
+    }),
+  });
+}
+
 export async function createPost(
   data: Omit<Post, "id" | "createdAt" | "status">,
 ): Promise<Post | null> {

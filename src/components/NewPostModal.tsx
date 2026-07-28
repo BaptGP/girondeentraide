@@ -1,5 +1,6 @@
 import {
   AlertCircle,
+  Bell,
   Building2,
   Camera,
   Check,
@@ -18,7 +19,7 @@ import {
   X,
 } from "lucide-react";
 import { useEffect, useRef, useState } from "react";
-import { uploadPostImage } from "../lib/supabase";
+import { createAlert, uploadPostImage } from "../lib/supabase";
 import { useStore } from "../store";
 import type { Category, PostType } from "../types";
 import { CATEGORIES, PET_CATEGORIES } from "../types";
@@ -51,6 +52,9 @@ export default function NewPostModal({ onClose }: { onClose: () => void }) {
   const [imageFile, setImageFile] = useState<File | null>(null);
   const [imagePreview, setImagePreview] = useState<string | null>(null);
   const [imageUploading, setImageUploading] = useState(false);
+  const [wantAlert, setWantAlert] = useState(false);
+  const [alertEmail, setAlertEmail] = useState("");
+  const [alertRadius, setAlertRadius] = useState(20);
   const [turnstileToken, setTurnstileToken] = useState<string | null>(null);
   const turnstileRef = useRef<HTMLDivElement>(null);
   const turnstileWidgetId = useRef<string | null>(null);
@@ -223,20 +227,35 @@ export default function NewPostModal({ onClose }: { onClose: () => void }) {
       setImageUploading(false);
       if (url) imageUrl = url;
     }
-    addPost({
-      type: type!,
-      category: category!,
-      title: title.trim(),
-      description: description.trim(),
-      capacity,
-      lat: lat!,
-      lng: lng!,
-      locationName: locationName || "Localisation non précisée",
-      contact: contact.trim(),
-      secretCode,
-      urgent,
-      imageUrl,
-    });
+    addPost(
+      {
+        type: type!,
+        category: category!,
+        title: title.trim(),
+        description: description.trim(),
+        capacity,
+        lat: lat!,
+        lng: lng!,
+        locationName: locationName || "Localisation non précisée",
+        contact: contact.trim(),
+        secretCode,
+        urgent,
+        imageUrl,
+      },
+      (postId) => {
+        if (wantAlert && alertEmail.trim()) {
+          createAlert({
+            email: alertEmail.trim(),
+            filterType: type === "pet" ? "pet" : "offer",
+            category: category!,
+            lat: lat!,
+            lng: lng!,
+            radiusKm: alertRadius,
+            postId,
+          }).catch(() => {});
+        }
+      },
+    );
     setSubmitted(true);
   };
 
@@ -673,6 +692,60 @@ export default function NewPostModal({ onClose }: { onClose: () => void }) {
                           Personnes en danger immédiat, feu proche
                         </div>
                       </div>
+                    </div>
+                  )}
+
+                  {(type === "request" || type === "pet") && (
+                    <div className="p-3 bg-crisis-dark rounded-xl border border-crisis-border space-y-3">
+                      <div className="flex items-center gap-3">
+                        <button
+                          type="button"
+                          onClick={() => setWantAlert(!wantAlert)}
+                          className={`relative w-12 h-6 rounded-full transition-colors ${wantAlert ? "bg-crisis-green" : "bg-gray-600"}`}
+                        >
+                          <span
+                            className={`absolute top-0.5 left-0.5 w-5 h-5 rounded-full bg-white transition-transform ${wantAlert ? "translate-x-6" : ""}`}
+                          />
+                        </button>
+                        <div className="flex-1">
+                          <div className="text-sm text-white font-medium flex items-center gap-1.5">
+                            <Bell size={14} className="text-crisis-green" />
+                            M'avertir par email des annonces près de moi
+                          </div>
+                        </div>
+                      </div>
+                      {wantAlert && (
+                        <>
+                          <div>
+                            <label className="text-xs text-gray-400 mb-1 block">
+                              Email pour recevoir les alertes
+                            </label>
+                            <input
+                              type="email"
+                              value={alertEmail}
+                              onChange={(e) => setAlertEmail(e.target.value)}
+                              placeholder="votre@email.fr"
+                              className="w-full bg-crisis-dark border border-crisis-border rounded-lg px-4 py-2 text-white text-sm focus:outline-none focus:border-crisis-green"
+                            />
+                          </div>
+                          <div>
+                            <label className="text-xs text-gray-400 mb-1 block">
+                              Rayon : {alertRadius}km
+                            </label>
+                            <input
+                              type="range"
+                              min={5}
+                              max={100}
+                              step={5}
+                              value={alertRadius}
+                              onChange={(e) =>
+                                setAlertRadius(Number(e.target.value))
+                              }
+                              className="w-full accent-crisis-green"
+                            />
+                          </div>
+                        </>
+                      )}
                     </div>
                   )}
 

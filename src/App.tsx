@@ -16,6 +16,7 @@ import {
 } from "lucide-react";
 import { useEffect, useMemo, useRef, useState } from "react";
 import AddressSearch from "./components/AddressSearch";
+import AlertModal from "./components/AlertModal";
 import EmergencyNumbers from "./components/EmergencyNumbers";
 import MapContainerView from "./components/MapContainerView";
 import NewPostModal from "./components/NewPostModal";
@@ -26,16 +27,7 @@ import { cleanupResolvedPosts, fetchSiteLocked } from "./lib/supabase";
 import type { FilterType } from "./store";
 import { getFilteredPosts, useStore } from "./store";
 import type { Category } from "./types";
-import { CATEGORIES, PET_CATEGORIES } from "./types";
-
-const TYPE_FILTERS: { key: FilterType; label: string; color: string }[] = [
-  { key: "all", label: "Tous", color: "#fafafa" },
-  { key: "offer", label: "Offres", color: "#16a34a" },
-  { key: "request", label: "Demandes", color: "#dc2626" },
-  { key: "volunteer", label: "Volontaires", color: "#f59e0b" },
-  { key: "pet", label: "Animaux", color: "#a855f7" },
-  { key: "official", label: "Officiels", color: "#2563eb" },
-];
+import { CATEGORIES, PET_CATEGORIES, TYPE_FILTERS } from "./types";
 
 export default function App() {
   const viewMode = useStore((s) => s.viewMode);
@@ -63,6 +55,7 @@ export default function App() {
   const [mapTarget, setMapTarget] = useState<[number, number] | null>(null);
   const [showVigilance, setShowVigilance] = useState(false);
   const [showPrivacy, setShowPrivacy] = useState(false);
+  const [showAlert, setShowAlert] = useState(false);
   const [siteLocked, setSiteLocked] = useState(false);
   const [searchPos, setSearchPos] = useState<[number, number] | null>(null);
   const [searchRadius, setSearchRadius] = useState<number>(20);
@@ -310,7 +303,7 @@ export default function App() {
             <button
               key={tf.key}
               onClick={() => {
-                setFilterType(tf.key);
+                setFilterType(tf.key as FilterType);
                 setFilterCategory("all");
               }}
               className={`flex-shrink-0 px-3 py-1 rounded-full text-xs font-semibold border transition-all ${
@@ -473,6 +466,9 @@ export default function App() {
       )}
       {isNewPostModalOpen && <NewPostModal onClose={closeNewPostModal} />}
       {showPrivacy && <PrivacyPolicy onClose={() => setShowPrivacy(false)} />}
+      {showAlert && (
+        <AlertModal onClose={() => setShowAlert(false)} userPos={userPos} />
+      )}
 
       {/* Footer */}
       <footer className="flex-shrink-0 bg-crisis-surface border-t border-crisis-border px-4 py-2 flex items-center justify-between gap-2">
@@ -499,13 +495,13 @@ export default function App() {
           <Flame size={12} />
           <span>Feux</span>
         </a>
-        <span className="text-[11px] text-gray-600">Eliaman</span>
         <button
           onClick={() => setShowPrivacy(true)}
           className="text-[11px] text-gray-500 hover:text-gray-300"
         >
           Confidentialité
         </button>
+        <span className="text-[11px] text-gray-600">Eliaman</span>
       </footer>
 
       {/* Vigilance sheet */}
