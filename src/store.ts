@@ -30,7 +30,10 @@ interface AppState {
   selectPost: (id: string | null) => void;
   openNewPostModal: () => void;
   closeNewPostModal: () => void;
-  addPost: (post: Omit<Post, "id" | "createdAt" | "status">) => Post;
+  addPost: (
+    data: Omit<Post, "id" | "createdAt" | "status">,
+    onCreated?: (id: string) => void,
+  ) => Post;
   resolvePost: (id: string, secretCode: string) => Promise<boolean>;
   deletePost: (id: string, secretCode: string) => Promise<boolean>;
   initSupabaseSync: () => () => void;
@@ -58,7 +61,7 @@ export const useStore = create<AppState>()((set, get) => ({
   openNewPostModal: () => set({ isNewPostModalOpen: true }),
   closeNewPostModal: () => set({ isNewPostModalOpen: false }),
 
-  addPost: (data) => {
+  addPost: (data, onCreated) => {
     const tempId = `temp-${Date.now()}`;
     const post: Post = {
       ...data,
@@ -79,6 +82,7 @@ export const useStore = create<AppState>()((set, get) => ({
           if (!get().posts.some((p) => p.id === remotePost.id)) {
             set((state) => ({ posts: [remotePost, ...state.posts] }));
           }
+          onCreated?.(remotePost.id);
         }
       })
       .catch((e) => {
