@@ -37,6 +37,7 @@ export default function App() {
   const sortByUrgent = useStore((s) => s.sortByUrgent);
   const selectedPostId = useStore((s) => s.selectedPostId);
   const isNewPostModalOpen = useStore((s) => s.isNewPostModalOpen);
+  const [showUnsubscribed, setShowUnsubscribed] = useState(false);
   const posts = useStore((s) => s.posts);
   const isSynced = useStore((s) => s.isSynced);
 
@@ -83,6 +84,12 @@ export default function App() {
   // Auto-open post from URL ?post=ID
   useEffect(() => {
     const params = new URLSearchParams(window.location.search);
+    if (params.get("unsubscribed") === "true") {
+      setShowUnsubscribed(true);
+      const newUrl = window.location.pathname;
+      window.history.replaceState({}, "", newUrl);
+      setTimeout(() => setShowUnsubscribed(false), 5000);
+    }
     const postId = params.get("post");
     if (postId && posts.length > 0 && !selectedPostId) {
       const post = posts.find((p) => p.id === postId);
@@ -436,6 +443,12 @@ export default function App() {
         {toast && (
           <div className="absolute top-4 left-1/2 -translate-x-1/2 z-30 bg-crisis-green text-white px-4 py-2.5 rounded-xl shadow-lg text-sm font-medium animate-slide-up max-w-[90%] truncate">
             {toast}
+          </div>
+        )}
+
+        {showUnsubscribed && (
+          <div className="absolute top-4 left-1/2 -translate-x-1/2 z-30 bg-crisis-surface border border-crisis-green text-white px-4 py-2.5 rounded-xl shadow-lg text-sm font-medium animate-slide-up max-w-[90%]">
+            Vous avez été désabonné des alertes email avec succès.
           </div>
         )}
 
