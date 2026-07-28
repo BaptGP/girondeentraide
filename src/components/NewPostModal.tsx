@@ -413,6 +413,21 @@ export default function NewPostModal({ onClose }: { onClose: () => void }) {
                       </button>
                     );
                   })}
+
+                  <a
+                    href="https://don.secourspopulaire.fr/defaut/~mon-don?_cv=1"
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="w-full flex items-center gap-3 p-4 rounded-xl border-2 border-crisis-border hover:border-gray-600 transition-all active:scale-[0.98]"
+                  >
+                    <div className="w-10 h-10 rounded-full flex items-center justify-center bg-amber-500/15">
+                      <Heart size={20} className="text-amber-500" />
+                    </div>
+                    <span className="font-semibold text-white flex-1 text-left">
+                      Faire un don au Secours Populaire
+                    </span>
+                    <ChevronRight size={20} className="text-gray-500" />
+                  </a>
                 </div>
               )}
 
