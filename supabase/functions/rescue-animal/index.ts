@@ -45,7 +45,7 @@ export default {
 
   <h3 style="color: #a855f7; margin-top: 24px;">Charte d'autorisation</h3>
   <p style="font-size: 13px; color: #555; font-style: italic; background: #f5f5f5; padding: 12px; border-radius: 8px;">
-    « Je certifie être autorisé(e) à demander cette intervention et j'autorise les bénévoles à accéder, sans effraction, à l'adresse indiquée afin de rechercher, nourrir, récupérer et transporter mon ou mes animaux vers un lieu sécurisé si nécessaire. Je comprends que l'intervention dépend des conditions de sécurité, des consignes des autorités et qu'aucun résultat ne peut être garanti. »
+    « Je certifie être autorisé(e) à demander cette intervention et j'autorise les bénévoles à accéder, sans effraction, à l'adresse indiquée afin de rechercher, nourrir, récupérer et transporter mon ou mes animaux vers un lieu sécurisé si nécessaire. Je comprends que l'intervention dépend des conditions de sécurité, des consignes des autorités et qu'aucun résultat ne peut être garanti. Je m'engage à ne pas porter plainte contre Mme Emery Anne Sophie. »
   </p>
   <table style="width: 100%; border-collapse: collapse; margin-top: 12px;">
     <tr><td style="padding: 8px; border-bottom: 1px solid #eee; font-weight: bold;">Nom</td><td style="padding: 8px; border-bottom: 1px solid #eee;">${data.name}</td></tr>

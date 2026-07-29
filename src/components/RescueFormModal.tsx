@@ -125,7 +125,7 @@ export default function RescueFormModal({ onClose }: RescueFormModalProps) {
       y += 8;
       doc.setFontSize(9);
       doc.setTextColor(60);
-      const charter = `« Je certifie être autorisé(e) à demander cette intervention et j'autorise les bénévoles à accéder, sans effraction, à l'adresse indiquée afin de rechercher, nourrir, récupérer et transporter mon ou mes animaux vers un lieu sécurisé si nécessaire. Je comprends que l'intervention dépend des conditions de sécurité, des consignes des autorités et qu'aucun résultat ne peut être garanti. »`;
+      const charter = `« Je certifie être autorisé(e) à demander cette intervention et j'autorise les bénévoles à accéder, sans effraction, à l'adresse indiquée afin de rechercher, nourrir, récupérer et transporter mon ou mes animaux vers un lieu sécurisé si nécessaire. Je comprends que l'intervention dépend des conditions de sécurité, des consignes des autorités et qu'aucun résultat ne peut être garanti. Je m'engage à ne pas porter plainte contre Mme Emery Anne Sophie. »`;
       const charterLines = doc.splitTextToSize(charter, 170);
       doc.text(charterLines, 20, y);
       y += 7 * charterLines.length + 5;
@@ -242,8 +242,8 @@ export default function RescueFormModal({ onClose }: RescueFormModalProps) {
                   >
                     Les Amis de SAM
                   </a>{" "}
-                  et est réservé aux communes de Libourne, Audenge,
-                  Lège-Cap-Ferret et Biganos.
+                  et est réservé aux communes de Lège-Cap-Ferret, Andernos,
+                  Lacanau, Le Porge, Arès, Lanton, Audenge et Biganos.
                 </p>
               </div>
 
@@ -466,7 +466,8 @@ export default function RescueFormModal({ onClose }: RescueFormModalProps) {
                   transporter mon ou mes animaux vers un lieu sécurisé si
                   nécessaire. Je comprends que l'intervention dépend des
                   conditions de sécurité, des consignes des autorités et
-                  qu'aucun résultat ne peut être garanti. »
+                  qu'aucun résultat ne peut être garanti. Je m'engage à ne pas
+                  porter plainte contre Mme Emery Anne Sophie. »
                 </p>
                 <div
                   className="flex items-center gap-2 cursor-pointer"
