@@ -242,7 +242,8 @@ export default function RescueFormModal({ onClose }: RescueFormModalProps) {
                   >
                     Les Amis de SAM
                   </a>{" "}
-                  et est réservé au secteur de Libourne (33500).
+                  et est réservé aux communes de Libourne, Audenge,
+                  Lège-Cap-Ferret et Biganos.
                 </p>
               </div>
 

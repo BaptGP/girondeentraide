@@ -443,7 +443,8 @@ export default function NewPostModal({ onClose }: { onClose: () => void }) {
                         Signaler un animal à sauver
                       </span>
                       <span className="text-xs text-gray-500">
-                        Commune de Libourne uniquement — Les Amis de SAM
+                        Libourne, Audenge, Lège-Cap-Ferret, Biganos — Les Amis
+                        de SAM
                       </span>
                     </div>
                     <ChevronRight size={20} className="text-gray-500" />
