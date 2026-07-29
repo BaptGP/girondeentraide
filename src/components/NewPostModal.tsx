@@ -23,6 +23,7 @@ import { createAlert, uploadPostImage } from "../lib/supabase";
 import { useStore } from "../store";
 import type { Category, PostType } from "../types";
 import { CATEGORIES, PET_CATEGORIES } from "../types";
+import RescueFormModal from "./RescueFormModal";
 
 type Step = 1 | 2 | 3;
 
@@ -55,6 +56,7 @@ export default function NewPostModal({ onClose }: { onClose: () => void }) {
   const [wantAlert, setWantAlert] = useState(false);
   const [alertEmail, setAlertEmail] = useState("");
   const [alertRadius, setAlertRadius] = useState(20);
+  const [showRescue, setShowRescue] = useState(false);
   const [turnstileToken, setTurnstileToken] = useState<string | null>(null);
   const turnstileRef = useRef<HTMLDivElement>(null);
   const turnstileWidgetId = useRef<string | null>(null);
@@ -267,16 +269,16 @@ export default function NewPostModal({ onClose }: { onClose: () => void }) {
 
   const typeOptions = [
     {
-      value: "offer" as PostType,
-      label: "J'propose de l'aide",
-      icon: Heart,
-      color: "#16a34a",
-    },
-    {
       value: "request" as PostType,
       label: "Je demande de l'aide",
       icon: AlertCircle,
       color: "#dc2626",
+    },
+    {
+      value: "offer" as PostType,
+      label: "J'propose de l'aide",
+      icon: Heart,
+      color: "#16a34a",
     },
     {
       value: "volunteer" as PostType,
@@ -285,16 +287,16 @@ export default function NewPostModal({ onClose }: { onClose: () => void }) {
       color: "#f59e0b",
     },
     {
-      value: "pet" as PostType,
-      label: "Animal perdu/trouvé",
-      icon: PawPrint,
-      color: "#a855f7",
-    },
-    {
       value: "official" as PostType,
       label: "Point officiel",
       icon: Building2,
       color: "#2563eb",
+    },
+    {
+      value: "pet" as PostType,
+      label: "Animal perdu/trouvé",
+      icon: PawPrint,
+      color: "#a855f7",
     },
   ];
 
@@ -428,6 +430,25 @@ export default function NewPostModal({ onClose }: { onClose: () => void }) {
                     </span>
                     <ChevronRight size={20} className="text-gray-500" />
                   </a>
+
+                  <button
+                    onClick={() => setShowRescue(true)}
+                    className="w-full flex items-center gap-3 p-4 rounded-xl border-2 border-crisis-border hover:border-gray-600 transition-all active:scale-[0.98]"
+                  >
+                    <div className="w-10 h-10 rounded-full flex items-center justify-center bg-purple-500/15">
+                      <PawPrint size={20} className="text-purple-500" />
+                    </div>
+                    <div className="flex-1 text-left">
+                      <span className="font-semibold text-white block">
+                        Signaler un animal à sauver
+                      </span>
+                      <span className="text-xs text-gray-500">
+                        Libourne, Audenge, Lège-Cap-Ferret, Biganos — Les Amis
+                        de SAM
+                      </span>
+                    </div>
+                    <ChevronRight size={20} className="text-gray-500" />
+                  </button>
                 </div>
               )}
 
@@ -798,6 +819,7 @@ export default function NewPostModal({ onClose }: { onClose: () => void }) {
           )}
         </div>
       </div>
+      {showRescue && <RescueFormModal onClose={() => setShowRescue(false)} />}
     </>
   );
 }
