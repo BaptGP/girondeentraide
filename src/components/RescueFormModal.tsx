@@ -226,8 +226,10 @@ export default function RescueFormModal({ onClose }: RescueFormModalProps) {
           ) : (
             <div className="space-y-4">
               <p className="text-sm text-gray-400">
-                Signalez les chats, chiens ou autres animaux enfermés dans des
-                maisons. Les informations seront transmises directement à
+                Signalez les animaux enfermés en intérieur (maison, chenil, cour
+                clôturée, clapier) qui nécessitent une intervention de
+                l'association. Les animaux en liberté extérieure ne sont pas
+                concernés. Les informations seront transmises directement à
                 l'association.
               </p>
 
