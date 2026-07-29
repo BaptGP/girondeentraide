@@ -13,7 +13,7 @@ import {
   Users,
   X,
 } from "lucide-react";
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import { fetchPostContact } from "../lib/supabase";
 import { useStore } from "../store";
 import type { Post } from "../types";
@@ -43,17 +43,23 @@ export default function PostDetailSheet({
   const [loading, setLoading] = useState(false);
   const [copied, setCopied] = useState(false);
   const [showImage, setShowImage] = useState(false);
-  const [contact, setContact] = useState(post.contact || "");
+  const [contact, setContact] = useState("");
+  const [phoneRevealed, setPhoneRevealed] = useState(false);
+  const [phoneLoading, setPhoneLoading] = useState(false);
   const resolvePost = useStore((s) => s.resolvePost);
   const deletePost = useStore((s) => s.deletePost);
 
-  useEffect(() => {
-    if (!post.contact) {
-      fetchPostContact(post.id).then(setContact);
-    } else {
-      setContact(post.contact);
+  const handleRevealPhone = async () => {
+    setPhoneLoading(true);
+    try {
+      const c = post.contact || (await fetchPostContact(post.id));
+      setContact(c);
+      setPhoneRevealed(true);
+    } catch {
+      setContact("");
     }
-  }, [post.id, post.contact]);
+    setPhoneLoading(false);
+  };
 
   const color = TYPE_COLORS[post.type];
   const cat = CATEGORY_MAP[post.category];
@@ -172,41 +178,55 @@ export default function PostDetailSheet({
           </div>
 
           {/* Action buttons */}
-          <div className="grid grid-cols-3 gap-2 pt-2">
-            <a
-              href={contact ? phoneUrl : undefined}
-              className={`flex flex-col items-center gap-1.5 py-3 rounded-xl font-semibold text-sm transition-all ${
-                contact
-                  ? "bg-crisis-green text-white hover:brightness-110 active:scale-95"
-                  : "bg-crisis-border text-gray-500"
-              }`}
-            >
-              <Phone size={20} />
-              {contact ? "Appeler" : "Chargement..."}
-            </a>
-            <a
-              href={contact ? whatsappUrl : undefined}
-              target="_blank"
-              rel="noopener noreferrer"
-              className={`flex flex-col items-center gap-1.5 py-3 rounded-xl font-semibold text-sm transition-all ${
-                contact
-                  ? "bg-[#25D366] text-white hover:brightness-110 active:scale-95"
-                  : "bg-crisis-border text-gray-500"
-              }`}
-            >
-              <MessageCircle size={20} />
-              WhatsApp
-            </a>
-            <a
-              href={directionsUrl}
-              target="_blank"
-              rel="noopener noreferrer"
-              className="flex flex-col items-center gap-1.5 bg-crisis-blue text-white py-3 rounded-xl font-semibold text-sm hover:brightness-110 active:scale-95 transition-all"
-            >
-              <Navigation size={20} />
-              Itinéraire
-            </a>
-          </div>
+          {phoneRevealed && contact ? (
+            <div className="grid grid-cols-3 gap-2 pt-2">
+              <a
+                href={phoneUrl}
+                className="flex flex-col items-center gap-1.5 py-3 rounded-xl font-semibold text-sm transition-all bg-crisis-green text-white hover:brightness-110 active:scale-95"
+              >
+                <Phone size={20} />
+                Appeler
+              </a>
+              <a
+                href={whatsappUrl}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="flex flex-col items-center gap-1.5 py-3 rounded-xl font-semibold text-sm transition-all bg-[#25D366] text-white hover:brightness-110 active:scale-95"
+              >
+                <MessageCircle size={20} />
+                WhatsApp
+              </a>
+              <a
+                href={directionsUrl}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="flex flex-col items-center gap-1.5 bg-crisis-blue text-white py-3 rounded-xl font-semibold text-sm hover:brightness-110 active:scale-95 transition-all"
+              >
+                <Navigation size={20} />
+                Itinéraire
+              </a>
+            </div>
+          ) : (
+            <div className="grid grid-cols-2 gap-2 pt-2">
+              <button
+                onClick={handleRevealPhone}
+                disabled={phoneLoading}
+                className="flex flex-col items-center gap-1.5 py-3 rounded-xl font-semibold text-sm transition-all bg-crisis-green text-white hover:brightness-110 active:scale-95 disabled:opacity-50"
+              >
+                <Phone size={20} />
+                {phoneLoading ? "Chargement..." : "Afficher le numéro"}
+              </button>
+              <a
+                href={directionsUrl}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="flex flex-col items-center gap-1.5 bg-crisis-blue text-white py-3 rounded-xl font-semibold text-sm hover:brightness-110 active:scale-95 transition-all"
+              >
+                <Navigation size={20} />
+                Itinéraire
+              </a>
+            </div>
+          )}
 
           {/* Share buttons */}
           <div className="flex items-center gap-2 pt-1">
