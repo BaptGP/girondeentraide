@@ -24,6 +24,7 @@ export default function RescueFormModal({ onClose }: RescueFormModalProps) {
   const [canRecover, setCanRecover] = useState("");
   const [needFoster, setNeedFoster] = useState("");
   const [additionalInfo, setAdditionalInfo] = useState("");
+  const [effraction, setEffraction] = useState("");
   const [charterAccepted, setCharterAccepted] = useState(false);
   const [dataConsent, setDataConsent] = useState(false);
   const [name, setName] = useState("");
@@ -34,6 +35,7 @@ export default function RescueFormModal({ onClose }: RescueFormModalProps) {
     phone.trim() &&
     animalCount.trim() &&
     animalDetails.trim() &&
+    effraction &&
     charterAccepted &&
     dataConsent,
   );
@@ -63,6 +65,7 @@ export default function RescueFormModal({ onClose }: RescueFormModalProps) {
         canRecover,
         needFoster,
         additionalInfo: additionalInfo.trim(),
+        effraction,
         charterAccepted,
         dataConsent,
         name: name.trim(),
@@ -100,6 +103,7 @@ export default function RescueFormModal({ onClose }: RescueFormModalProps) {
         ["Récupération après", body.canRecover || "Non précisé"],
         ["Famille d'accueil", body.needFoster || "Non précisé"],
         ["Autres informations", body.additionalInfo || "—"],
+        ["Effraction", body.effraction || "Non précisé"],
       ];
 
       doc.setFontSize(11);
@@ -441,6 +445,21 @@ export default function RescueFormModal({ onClose }: RescueFormModalProps) {
                       {o.label}
                     </option>
                   ))}
+                </select>
+              </div>
+
+              <div>
+                <label className="text-sm text-gray-400 mb-1.5 block">
+                  Accès au logement <span className="text-crisis-red">*</span>
+                </label>
+                <select
+                  value={effraction}
+                  onChange={(e) => setEffraction(e.target.value)}
+                  className={inputClass}
+                >
+                  <option value="">—</option>
+                  <option value="sans effraction">Sans effraction</option>
+                  <option value="avec effraction">Avec effraction</option>
                 </select>
               </div>
 

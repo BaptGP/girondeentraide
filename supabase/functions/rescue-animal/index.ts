@@ -41,6 +41,7 @@ export default {
     <tr><td style="padding: 8px; border-bottom: 1px solid #eee; font-weight: bold;">Récupération après intervention</td><td style="padding: 8px; border-bottom: 1px solid #eee;">${yesNo(data.canRecover)}</td></tr>
     <tr><td style="padding: 8px; border-bottom: 1px solid #eee; font-weight: bold;">Famille d'accueil nécessaire</td><td style="padding: 8px; border-bottom: 1px solid #eee;">${yesNo(data.needFoster)}</td></tr>
     <tr><td style="padding: 8px; border-bottom: 1px solid #eee; font-weight: bold;">Autres informations</td><td style="padding: 8px; border-bottom: 1px solid #eee;">${data.additionalInfo || "—"}</td></tr>
+    <tr><td style="padding: 8px; border-bottom: 1px solid #eee; font-weight: bold;">Accès au logement</td><td style="padding: 8px; border-bottom: 1px solid #eee;">${yesNo(data.effraction)}</td></tr>
   </table>
 
   <h3 style="color: #a855f7; margin-top: 24px;">Charte d'autorisation</h3>
