@@ -41,6 +41,7 @@ export default function NewPostModal({ onClose }: { onClose: () => void }) {
   const [description, setDescription] = useState("");
   const [capacity, setCapacity] = useState(0);
   const [contact, setContact] = useState("");
+  const [phoneConsent, setPhoneConsent] = useState(false);
   const [lat, setLat] = useState<number | null>(null);
   const [lng, setLng] = useState<number | null>(null);
   const [locationName, setLocationName] = useState("");
@@ -211,6 +212,7 @@ export default function NewPostModal({ onClose }: { onClose: () => void }) {
     category &&
     title.trim() &&
     contact.trim() &&
+    phoneConsent &&
     lat !== null &&
     lng !== null &&
     turnstileToken !== null;
@@ -682,6 +684,43 @@ export default function NewPostModal({ onClose }: { onClose: () => void }) {
                         onChange={(e) => setContact(e.target.value)}
                         className="w-full bg-crisis-dark border border-crisis-border rounded-lg px-4 py-2.5 text-white text-sm focus:outline-none focus:border-crisis-red"
                       />
+                    </div>
+
+                    <div
+                      className="flex items-start gap-2 cursor-pointer mt-3"
+                      onClick={() => setPhoneConsent(!phoneConsent)}
+                    >
+                      <button
+                        type="button"
+                        className={`w-5 h-5 rounded-md border-2 flex items-center justify-center shrink-0 mt-0.5 transition-all ${
+                          phoneConsent
+                            ? "bg-crisis-red border-crisis-red"
+                            : "border-gray-600"
+                        }`}
+                      >
+                        {phoneConsent && (
+                          <svg
+                            width="12"
+                            height="12"
+                            viewBox="0 0 12 12"
+                            fill="none"
+                          >
+                            <path
+                              d="M2 6L5 9L10 3"
+                              stroke="white"
+                              strokeWidth="2"
+                              strokeLinecap="round"
+                              strokeLinejoin="round"
+                            />
+                          </svg>
+                        )}
+                      </button>
+                      <span className="text-xs text-gray-400 leading-relaxed">
+                        J'accepte que mon numéro de téléphone soit visible par
+                        les utilisateurs du site pour être contacté au sujet de
+                        cette annonce.{" "}
+                        <span className="text-crisis-red">*</span>
+                      </span>
                     </div>
                   </div>
 

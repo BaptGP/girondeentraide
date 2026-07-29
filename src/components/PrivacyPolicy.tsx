@@ -70,9 +70,13 @@ export default function PrivacyPolicy({ onClose }: { onClose: () => void }) {
               Numéro de téléphone
             </h3>
             <p>
-              Votre numéro de téléphone n'est visible qu'à l'ouverture d'une
-              annonce spécifique. Il n'est pas inclus dans la liste globale des
-              annonces et n'est pas accessible par scrapping de masse.
+              Lors de la création d'une annonce, vous consentez explicitement,
+              par une case à cocher, à ce que votre numéro de téléphone soit
+              visible par les autres utilisateurs. Votre numéro n'est pas inclus
+              dans la liste globale des annonces et n'est chargé qu'au clic
+              volontaire sur le bouton « Afficher le numéro » dans le détail
+              d'une annonce, ce qui empêche l'aspiration automatique par des
+              robots.
             </p>
           </div>
 
