@@ -140,10 +140,21 @@ export default function RescueFormModal({ onClose }: RescueFormModalProps) {
       y += 6;
       doc.text("Mention: Bon pour autorisation", 20, y);
 
-      const pdfBlob = doc.output("blob");
-      const pdfUrl = URL.createObjectURL(pdfBlob);
-      window.open(pdfUrl, "_blank");
+      const pdfBase64 = doc.output("datauristring").split(",")[1];
 
+      const res = await fetch(
+        `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/rescue-animal`,
+        {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${import.meta.env.VITE_SUPABASE_ANON_KEY}`,
+          },
+          body: JSON.stringify({ ...body, pdfBase64 }),
+        },
+      );
+
+      if (!res.ok) throw new Error("Erreur lors de l'envoi");
       setSubmitted(true);
     } catch {
       setError("Erreur lors de l'envoi du formulaire. Réessayez.");

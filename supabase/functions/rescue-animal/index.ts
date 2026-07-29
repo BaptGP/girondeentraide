@@ -4,6 +4,16 @@ const RESEND_API_KEY = Deno.env.get("RESEND_API_KEY")!;
 
 export default {
   async fetch(req: Request): Promise<Response> {
+    const corsHeaders = {
+      "Access-Control-Allow-Origin": "*",
+      "Access-Control-Allow-Methods": "POST, OPTIONS",
+      "Access-Control-Allow-Headers": "Content-Type, Authorization",
+    };
+
+    if (req.method === "OPTIONS") {
+      return new Response(null, { status: 204, headers: corsHeaders });
+    }
+
     try {
       const data = await req.json();
 
@@ -75,18 +85,18 @@ export default {
         const errText = await res.text();
         return new Response(JSON.stringify({ error: errText }), {
           status: 500,
-          headers: { "Content-Type": "application/json" },
+          headers: { "Content-Type": "application/json", ...corsHeaders },
         });
       }
 
       return new Response(JSON.stringify({ sent: true }), {
         status: 200,
-        headers: { "Content-Type": "application/json" },
+        headers: { "Content-Type": "application/json", ...corsHeaders },
       });
     } catch (err) {
       return new Response(JSON.stringify({ error: (err as Error).message }), {
         status: 500,
-        headers: { "Content-Type": "application/json" },
+        headers: { "Content-Type": "application/json", ...corsHeaders },
       });
     }
   },
