@@ -269,16 +269,16 @@ export default function NewPostModal({ onClose }: { onClose: () => void }) {
 
   const typeOptions = [
     {
-      value: "offer" as PostType,
-      label: "J'propose de l'aide",
-      icon: Heart,
-      color: "#16a34a",
-    },
-    {
       value: "request" as PostType,
       label: "Je demande de l'aide",
       icon: AlertCircle,
       color: "#dc2626",
+    },
+    {
+      value: "offer" as PostType,
+      label: "J'propose de l'aide",
+      icon: Heart,
+      color: "#16a34a",
     },
     {
       value: "volunteer" as PostType,
@@ -287,16 +287,16 @@ export default function NewPostModal({ onClose }: { onClose: () => void }) {
       color: "#f59e0b",
     },
     {
-      value: "pet" as PostType,
-      label: "Animal perdu/trouvé",
-      icon: PawPrint,
-      color: "#a855f7",
-    },
-    {
       value: "official" as PostType,
       label: "Point officiel",
       icon: Building2,
       color: "#2563eb",
+    },
+    {
+      value: "pet" as PostType,
+      label: "Animal perdu/trouvé",
+      icon: PawPrint,
+      color: "#a855f7",
     },
   ];
 
@@ -438,9 +438,14 @@ export default function NewPostModal({ onClose }: { onClose: () => void }) {
                     <div className="w-10 h-10 rounded-full flex items-center justify-center bg-purple-500/15">
                       <PawPrint size={20} className="text-purple-500" />
                     </div>
-                    <span className="font-semibold text-white flex-1 text-left">
-                      Signaler un animal à sauver
-                    </span>
+                    <div className="flex-1 text-left">
+                      <span className="font-semibold text-white block">
+                        Signaler un animal à sauver
+                      </span>
+                      <span className="text-xs text-gray-500">
+                        Commune de Libourne uniquement — Les Amis de SAM
+                      </span>
+                    </div>
                     <ChevronRight size={20} className="text-gray-500" />
                   </button>
                 </div>

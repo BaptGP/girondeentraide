@@ -28,14 +28,15 @@ export default function RescueFormModal({ onClose }: RescueFormModalProps) {
   const [dataConsent, setDataConsent] = useState(false);
   const [name, setName] = useState("");
 
-  const canSubmit =
+  const canSubmit = Boolean(
     name.trim() &&
     address.trim() &&
     phone.trim() &&
     animalCount.trim() &&
     animalDetails.trim() &&
     charterAccepted &&
-    dataConsent;
+    dataConsent,
+  );
 
   const handleSubmit = async () => {
     if (!canSubmit) return;
@@ -96,8 +97,8 @@ export default function RescueFormModal({ onClose }: RescueFormModalProps) {
         ["Mode d'accès", body.accessMode || "—"],
         ["Eau et nourriture", body.foodWater || "Non précisé"],
         ["Cage de transport", body.transportCage || "Non précisé"],
-        ["Récupération après intervention", body.canRecover || "Non précisé"],
-        ["Famille d'accueil nécessaire", body.needFoster || "Non précisé"],
+        ["Récupération après", body.canRecover || "Non précisé"],
+        ["Famille d'accueil", body.needFoster || "Non précisé"],
         ["Autres informations", body.additionalInfo || "—"],
       ];
 
@@ -108,8 +109,8 @@ export default function RescueFormModal({ onClose }: RescueFormModalProps) {
         doc.text(`${label}:`, 20, y);
         doc.setFont("helvetica", "normal");
         doc.setTextColor(40);
-        const lines = doc.splitTextToSize(value, 120);
-        doc.text(lines, 70, y);
+        const lines = doc.splitTextToSize(value, 110);
+        doc.text(lines, 75, y);
         y += 7 * lines.length + 3;
       }
 
@@ -139,21 +140,10 @@ export default function RescueFormModal({ onClose }: RescueFormModalProps) {
       y += 6;
       doc.text("Mention: Bon pour autorisation", 20, y);
 
-      const pdfBase64 = doc.output("datauristring").split(",")[1];
+      const pdfBlob = doc.output("blob");
+      const pdfUrl = URL.createObjectURL(pdfBlob);
+      window.open(pdfUrl, "_blank");
 
-      const res = await fetch(
-        `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/rescue-animal`,
-        {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-            Authorization: `Bearer ${import.meta.env.VITE_SUPABASE_ANON_KEY}`,
-          },
-          body: JSON.stringify({ ...body, pdfBase64 }),
-        },
-      );
-
-      if (!res.ok) throw new Error("Erreur lors de l'envoi");
       setSubmitted(true);
     } catch {
       setError("Erreur lors de l'envoi du formulaire. Réessayez.");
@@ -225,9 +215,25 @@ export default function RescueFormModal({ onClose }: RescueFormModalProps) {
           ) : (
             <div className="space-y-4">
               <p className="text-sm text-gray-400">
-                Remplissez ce formulaire pour signaler un animal à sauver. Les
-                informations seront transmises directement à l'association.
+                Signalez les chats, chiens ou autres animaux enfermés dans des
+                maisons. Les informations seront transmises directement à
+                l'association.
               </p>
+
+              <div className="bg-purple-500/10 border border-purple-500/30 rounded-xl p-3">
+                <p className="text-xs text-purple-300 leading-relaxed">
+                  Ce service est assuré par l'association{" "}
+                  <a
+                    href="https://www.lesamisdesam.org"
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="underline font-medium"
+                  >
+                    Les Amis de SAM
+                  </a>{" "}
+                  et est réservé au secteur de Libourne (33500).
+                </p>
+              </div>
 
               <div>
                 <label className="text-sm text-gray-400 mb-1.5 block">
@@ -250,7 +256,7 @@ export default function RescueFormModal({ onClose }: RescueFormModalProps) {
                   type="text"
                   value={address}
                   onChange={(e) => setAddress(e.target.value)}
-                  placeholder="123 rue exemple, 33000 Bordeaux"
+                  placeholder="123 rue exemple, 33500 Libourne"
                   className={inputClass}
                 />
               </div>
