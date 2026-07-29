@@ -102,6 +102,40 @@ export default function PrivacyPolicy({ onClose }: { onClose: () => void }) {
           </div>
 
           <div>
+            <h3 className="text-white font-semibold mb-1">
+              Formulaire de sauvetage animal
+            </h3>
+            <p>
+              Le formulaire de signalement d'animaux à sauver collecte les
+              données suivantes : nom, adresse exacte, numéro de téléphone,
+              informations sur les animaux (nombre, description, tempérament,
+              identification), conditions d'accès et informations
+              complémentaires.
+            </p>
+            <p className="mt-2">
+              Ces données sont transmises par email à l'association{" "}
+              <a
+                href="https://www.lesamisdesam.org"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="underline"
+              >
+                Les Amis de SAM
+              </a>
+              , partenaire de la plateforme, uniquement pour la finalité de
+              l'intervention de sauvetage demandée. Un PDF récapitulatif est
+              également généré et joint à l'email. Les données ne sont pas
+              stockées sur la plateforme ni affichées publiquement sur la carte.
+            </p>
+            <p className="mt-2">
+              L'utilisateur autorise explicitement, par une case à cocher, la
+              transmission de ses données à l'association. L'utilisateur
+              certifie également être autorisé à demander l'intervention et
+              autorise les bénévoles à accéder à l'adresse indiquée.
+            </p>
+          </div>
+
+          <div>
             <h3 className="text-white font-semibold mb-1">Hébergement</h3>
             <p>
               Les données sont hébergées sur Supabase (serveurs européens) et
