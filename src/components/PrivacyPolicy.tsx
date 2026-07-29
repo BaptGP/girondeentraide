@@ -115,12 +115,12 @@ export default function PrivacyPolicy({ onClose }: { onClose: () => void }) {
             <p className="mt-2">
               Ces données sont transmises par email à l'association{" "}
               <a
-                href="https://www.lesamisdesam.org"
+                href="http://assosam.free.fr"
                 target="_blank"
                 rel="noopener noreferrer"
                 className="underline"
               >
-                Les Amis de SAM
+                SAM Libourne
               </a>
               , partenaire de la plateforme, uniquement pour la finalité de
               l'intervention de sauvetage demandée. Un PDF récapitulatif est

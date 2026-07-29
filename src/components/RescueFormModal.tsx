@@ -241,12 +241,12 @@ export default function RescueFormModal({ onClose }: RescueFormModalProps) {
                 <p className="text-xs text-purple-300 leading-relaxed">
                   Ce service est assuré par l'association{" "}
                   <a
-                    href="https://www.lesamisdesam.org"
+                    href="http://assosam.free.fr"
                     target="_blank"
                     rel="noopener noreferrer"
                     className="underline font-medium"
                   >
-                    Les Amis de SAM
+                    SAM Libourne
                   </a>{" "}
                   et est réservé aux communes de Lège-Cap-Ferret, Andernos,
                   Lacanau, Le Porge, Arès, Lanton, Audenge et Biganos.

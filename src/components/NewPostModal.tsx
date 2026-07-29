@@ -444,7 +444,7 @@ export default function NewPostModal({ onClose }: { onClose: () => void }) {
                       </span>
                       <span className="text-xs text-gray-500">
                         Lège-Cap-Ferret, Andernos, Lacanau, Le Porge, Arès,
-                        Lanton, Audenge, Biganos — Les Amis de SAM
+                        Lanton, Audenge, Biganos — SAM Libourne
                       </span>
                     </div>
                     <ChevronRight size={20} className="text-gray-500" />
